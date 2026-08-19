@@ -12,6 +12,12 @@ const MISSION = {
   secondary: "Clear the deck guards",
 };
 
+/** Painted art from Partner A's branch — paths only, no duplicated pixels. */
+const ART = {
+  sceneImage: "assets/scene-coatroom.jpg",
+  backdropImage: "assets/backdrop-ballroom.jpg",
+};
+
 const WEAPON = {
   id: "ppk-64",
   name: "PPK-64",
@@ -53,12 +59,23 @@ const TILE = {
   5: { solid: true, name: "water", color: [0, 18, 51] },
 };
 
+const PROPS = [
+  { x: 5.4, y: 6.4, kind: "lantern" },
+  { x: 9.5, y: 7.2, kind: "flute" },
+  { x: 11.6, y: 5.5, kind: "lantern" },
+  { x: 7.2, y: 10.6, kind: "ring" },
+  { x: 13.5, y: 10.2, kind: "crate-deco" },
+  { x: 4.6, y: 8.8, kind: "plant" },
+  { x: 15.2, y: 8.4, kind: "flute" },
+  { x: 10.2, y: 11.4, kind: "lantern" },
+];
+
 const ENEMY_TEMPLATES = [
-  { id: "guard-aft", x: 6.5, y: 7.5, hp: 70, kind: "guard" },
-  { id: "guard-port", x: 8.5, y: 4.5, hp: 70, kind: "guard" },
-  { id: "guard-starboard", x: 12.5, y: 8.5, hp: 70, kind: "guard" },
-  { id: "guard-bow", x: 15.5, y: 6.5, hp: 80, kind: "guard" },
-  { id: "marcus-vale", x: 16.2, y: 11.2, hp: 120, kind: "target" },
+  { id: "guard-aft", x: 6.5, y: 7.5, hp: 70, kind: "guard", portrait: "assets/portraits/julian-cross.jpg" },
+  { id: "guard-port", x: 8.5, y: 4.5, hp: 70, kind: "guard", portrait: "assets/portraits/adrienne-devereux.jpg" },
+  { id: "guard-starboard", x: 12.5, y: 8.5, hp: 70, kind: "guard", portrait: "assets/portraits/lila-chen.jpg" },
+  { id: "guard-bow", x: 15.5, y: 6.5, hp: 80, kind: "guard", portrait: "assets/portraits/julian-cross.jpg" },
+  { id: "marcus-vale", x: 16.2, y: 11.2, hp: 120, kind: "target", portrait: "assets/portraits/marcus-vale.jpg" },
 ];
 
 const ENDINGS = {

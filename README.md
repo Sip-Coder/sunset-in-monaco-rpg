@@ -2,7 +2,7 @@
 
 N64-style first-person spy shooter. Static HTML/CSS/JS — no backend.
 
-Sunset, Monaco Harbor. Infiltrate Adrienne Devereux’s black-and-gold yacht and neutralize Marcus Vale. Original mission with chunky 64-bit presentation (homage, not a licensed clone).
+Painted stills from Partner A live under `assets/` (`sceneImage`, `backdropImage`, per-host `portrait`) and are sampled in the first-person view.
 
 ## Play
 
@@ -15,7 +15,8 @@ Open [http://localhost:8080](http://localhost:8080). Click the view to lock the 
 | Control | Action |
 | --- | --- |
 | WASD | Move |
-| Mouse | Look |
+| Arrow keys | Look (left/right turn, up/down pitch) |
+| Mouse (optional) | Look if the pointer is locked |
 | LMB / Space | Fire |
 | R | Reload |
 | Shift | Run |

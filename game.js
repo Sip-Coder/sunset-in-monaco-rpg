@@ -12,6 +12,7 @@ const state = {
   px: PLAYER_START.x,
   py: PLAYER_START.y,
   dir: PLAYER_START.dir,
+  pitch: 0,
   hp: 100,
   armor: 40,
   mag: WEAPON.magSize,
@@ -25,7 +26,228 @@ const state = {
   zbuf: new Float32Array(W),
   last: 0,
   ended: false,
+  time: 0,
 };
+
+const TEX = 64;
+const textures = {};
+const frame = ctx.createImageData(W, H);
+
+function hash(n) {
+  n = Math.imul(n ^ 61, 0x27d4eb2d);
+  n = (n ^ (n >>> 15)) >>> 0;
+  return n / 4294967296;
+}
+
+function setTex(id, fn) {
+  const data = new Uint8ClampedArray(TEX * TEX * 4);
+  for (let y = 0; y < TEX; y++) {
+    for (let x = 0; x < TEX; x++) {
+      const c = fn(x, y);
+      const i = (y * TEX + x) * 4;
+      data[i] = c[0];
+      data[i + 1] = c[1];
+      data[i + 2] = c[2];
+      data[i + 3] = 255;
+    }
+  }
+  textures[id] = data;
+}
+
+const artPixels = {};
+
+function loadImage(src) {
+  return new Promise(function (resolve) {
+    const img = new Image();
+    img.onload = function () {
+      const c = document.createElement("canvas");
+      c.width = img.width;
+      c.height = img.height;
+      const g = c.getContext("2d");
+      g.drawImage(img, 0, 0);
+      artPixels[src] = {
+        w: img.width,
+        h: img.height,
+        data: g.getImageData(0, 0, img.width, img.height).data,
+        img: img,
+      };
+      resolve(img);
+    };
+    img.onerror = function () {
+      resolve(null);
+    };
+    img.src = src;
+  });
+}
+
+function sampleArt(src, u01, v01) {
+  const p = artPixels[src];
+  if (!p) return null;
+  const x = ((((u01 % 1) + 1) % 1) * (p.w - 1)) | 0;
+  const y = Math.max(0, Math.min(p.h - 1, v01 * (p.h - 1))) | 0;
+  const i = (y * p.w + x) * 4;
+  return [p.data[i], p.data[i + 1], p.data[i + 2]];
+}
+
+function loadArt() {
+  const paths = [ART.sceneImage, ART.backdropImage].concat(
+    ENEMY_TEMPLATES.map(function (e) {
+      return e.portrait;
+    })
+  );
+  const unique = [];
+  for (let i = 0; i < paths.length; i++) {
+    if (paths[i] && unique.indexOf(paths[i]) === -1) unique.push(paths[i]);
+  }
+  return Promise.all(unique.map(loadImage));
+}
+
+function sampleTex(id, u, v) {
+  const x = ((u % TEX) + TEX) % TEX | 0;
+  const y = ((v % TEX) + TEX) % TEX | 0;
+  const d = textures[id];
+  const i = (y * TEX + x) * 4;
+  return [d[i], d[i + 1], d[i + 2]];
+}
+
+function buildTextures() {
+  setTex(1, function (x, y) {
+    const panel = (x / 12) | 0;
+    let r = 16 + (panel % 2) * 10 + hash(x + y * 90) * 8;
+    let g = 16 + (panel % 2) * 8 + hash(y * 7) * 6;
+    let b = 18 + hash(x * 3) * 6;
+    if (x % 12 === 0) {
+      r = 8;
+      g = 8;
+      b = 10;
+    }
+    if (y > 6 && y < 11) {
+      r = 38;
+      g = 32;
+      b = 28;
+    }
+    if (y > 42 && y < 47) {
+      r = 212;
+      g = 175;
+      b = 55;
+    }
+    if (y > 47 && y < 49) {
+      r = 120;
+      g = 90;
+      b = 30;
+    }
+    if (x % 6 === 2 && y % 8 === 3) {
+      r = g = b = 90;
+    }
+    return [r, g, b];
+  });
+  setTex(2, function (x, y) {
+    const grain = Math.sin(x * 0.7 + y * 0.15) * 18;
+    let r = 200 + grain + hash(x * y) * 20;
+    let g = 160 + grain * 0.7;
+    let b = 40 + hash(y) * 20;
+    if (y % 16 < 2) {
+      r = 255;
+      g = 230;
+      b = 140;
+    }
+    if (x % 8 === 0) {
+      r *= 0.75;
+      g *= 0.75;
+    }
+    return [r, g, b];
+  });
+  setTex(3, function (x, y) {
+    let r = 92 + Math.sin(x * 0.4) * 12;
+    let g = 32 + Math.sin(y * 0.2) * 8;
+    let b = 38;
+    if (y < 14) {
+      r = 28;
+      g = 18;
+      b = 22;
+    }
+    if (y > 18 && y < 50 && x > 10 && x < 54) {
+      const tuft = ((x / 8) | 0) + ((y / 8) | 0);
+      r = 90 + (tuft % 2) * 20;
+      g = 18;
+      b = 32;
+      if (x % 8 === 0 || y % 8 === 0) {
+        r = 50;
+        g = 10;
+        b = 18;
+      }
+    }
+    if (y > 52) {
+      r = 180;
+      g = 140;
+      b = 70;
+    }
+    return [r, g, b];
+  });
+  setTex(4, function (x, y) {
+    const plank = (y / 8) | 0;
+    let r = 110 + (plank % 2) * 20 + hash(x + plank) * 18;
+    let g = 72 + hash(y) * 12;
+    let b = 36;
+    if (y % 8 === 0 || x === 0 || x === 63) {
+      r = 50;
+      g = 30;
+      b = 16;
+    }
+    if (x > 20 && x < 44 && y > 20 && y < 28) {
+      r = 200;
+      g = 170;
+      b = 90;
+    }
+    return [r, g, b];
+  });
+  setTex(5, function (x, y) {
+    const wave = Math.sin(x * 0.4 + y * 0.2) * 20;
+    return [4, 22 + wave * 0.3, 70 + wave];
+  });
+  setTex("floor", function (x, y) {
+    const plank = (x / 6) | 0;
+    let r = 86 + (plank % 3) * 14 + hash(y + plank * 9) * 16;
+    let g = 54 + hash(x) * 10;
+    let b = 28;
+    if (x % 6 === 0) {
+      r = 42;
+      g = 28;
+      b = 16;
+    }
+    if (y % 32 === 4) {
+      r = 160;
+      g = 120;
+      b = 60;
+    }
+    return [r, g, b];
+  });
+  setTex("sky", function (x, y) {
+    const t = y / TEX;
+    let r = 43 + t * 200;
+    let g = 16 + t * 90;
+    let b = 85 - t * 40;
+    if (t > 0.55) {
+      r = 242;
+      g = 153 - (t - 0.55) * 80;
+      b = 74;
+    }
+    if (Math.hypot(x - 48, y - 38) < 7) {
+      r = 255;
+      g = 230;
+      b = 160;
+    }
+    if (y > 50) {
+      const sil = hash((x / 3) | 0) > 0.45 && y > 50 + hash(x) * 8;
+      if (sil) {
+        r = 8;
+        g = 8;
+        b = 14;
+      }
+    }
+    return [r, g, b];
+  });
+}
 
 function hideOverlays() {
   document.querySelectorAll(".overlay").forEach((el) => {
@@ -71,7 +293,11 @@ function boot() {
   window.addEventListener("mousemove", onMouse);
 
   showOverlay("screen-title");
-  requestAnimationFrame(loop);
+  document.documentElement.style.setProperty("--backdrop", "url('" + ART.backdropImage + "')");
+  buildTextures();
+  loadArt().then(function () {
+    requestAnimationFrame(loop);
+  });
 }
 
 function startMission() {
@@ -86,6 +312,7 @@ function resetPlay() {
   state.px = PLAYER_START.x;
   state.py = PLAYER_START.y;
   state.dir = PLAYER_START.dir;
+  state.pitch = 0;
   state.hp = 100;
   state.armor = 40;
   state.mag = WEAPON.magSize;
@@ -110,6 +337,14 @@ function resume() {
 
 function onKey(e) {
   state.keys[e.code] = true;
+  if (
+    e.code === "ArrowUp" ||
+    e.code === "ArrowDown" ||
+    e.code === "ArrowLeft" ||
+    e.code === "ArrowRight"
+  ) {
+    e.preventDefault();
+  }
   if (e.code === "Escape" && state.screen === "play") {
     pause();
   }
@@ -134,6 +369,7 @@ function onMouse(e) {
   if (state.screen !== "play") return;
   if (document.pointerLockElement !== canvas) return;
   state.dir += e.movementX * 0.0024;
+  state.pitch = Math.max(-0.45, Math.min(0.45, state.pitch - e.movementY * 0.002));
 }
 
 function startReload() {
@@ -198,6 +434,7 @@ function hasLos(ax, ay, bx, by) {
 function loop(t) {
   const dt = Math.min(0.05, (t - (state.last || t)) / 1000);
   state.last = t;
+  state.time += dt;
   if (state.screen === "play") {
     update(dt);
     draw();
@@ -218,6 +455,15 @@ function update(dt) {
       state.reserve -= take;
       state.reload = 0;
     }
+  }
+
+  if (state.keys.ArrowLeft) state.dir -= 2.1 * dt;
+  if (state.keys.ArrowRight) state.dir += 2.1 * dt;
+  if (state.keys.ArrowUp) {
+    state.pitch = Math.min(0.45, state.pitch + 1.6 * dt);
+  }
+  if (state.keys.ArrowDown) {
+    state.pitch = Math.max(-0.45, state.pitch - 1.6 * dt);
   }
 
   let mx = 0;
@@ -305,58 +551,221 @@ function endMission(id) {
   showOverlay("screen-end");
 }
 
-function draw() {
-  const horizon = (H / 2) | 0;
-  const sky = ctx.createLinearGradient(0, 0, 0, horizon);
-  sky.addColorStop(0, "#2b1055");
-  sky.addColorStop(0.45, "#d9534f");
-  sky.addColorStop(1, "#f2994a");
-  ctx.fillStyle = sky;
-  ctx.fillRect(0, 0, W, horizon);
-  ctx.fillStyle = "#0a0a0a";
-  ctx.fillRect(0, horizon, W, H - horizon);
+function putPx(x, y, r, g, b, shade) {
+  if (x < 0 || y < 0 || x >= W || y >= H) return;
+  const i = (y * W + x) * 4;
+  const s = shade == null ? 1 : shade;
+  const d = frame.data;
+  d[i] = r * s;
+  d[i + 1] = g * s;
+  d[i + 2] = b * s;
+  d[i + 3] = 255;
+}
 
-  for (let x = 0; x < W; x += 2) {
-    const cam = (2 * x) / W - 1;
-    const rayDirX = Math.cos(state.dir) + Math.cos(state.dir + Math.PI / 2) * 0.66 * cam;
-    const rayDirY = Math.sin(state.dir) + Math.sin(state.dir + Math.PI / 2) * 0.66 * cam;
-    const hit = cast(state.px, state.py, rayDirX, rayDirY);
-    state.zbuf[x] = hit.dist;
-    if (x + 1 < W) state.zbuf[x + 1] = hit.dist;
-    const lineH = Math.min(H * 2, (H / hit.dist) | 0);
-    const y0 = ((H - lineH) / 2) | 0;
-    const shade = Math.max(0.18, 1 - hit.dist / 16) * (hit.side ? 0.65 : 1);
-    const base = TILE[hit.tile].color;
-    ctx.fillStyle =
-      "rgb(" +
-      ((base[0] * shade) | 0) +
-      "," +
-      ((base[1] * shade) | 0) +
-      "," +
-      ((base[2] * shade) | 0) +
-      ")";
-    ctx.fillRect(x, y0, 2, lineH);
-    if (hit.tile === 2) {
-      ctx.fillStyle = "rgba(240,215,140," + 0.25 * shade + ")";
-      ctx.fillRect(x, y0, 2, 3);
+function draw() {
+  const data = frame.data;
+  for (let i = 0; i < data.length; i += 4) {
+    data[i + 3] = 255;
+  }
+
+  const horizon = Math.max(1, Math.min(H - 1, ((H / 2) + state.pitch * H) | 0));
+  const dirX = Math.cos(state.dir);
+  const dirY = Math.sin(state.dir);
+  const planeX = Math.cos(state.dir + Math.PI / 2) * 0.72;
+  const planeY = Math.sin(state.dir + Math.PI / 2) * 0.72;
+
+  for (let y = 0; y < H; y++) {
+    if (y < horizon) {
+      const v = (y / horizon) * (TEX - 1);
+      for (let x = 0; x < W; x++) {
+        const u = ((x / W) * TEX + state.dir * 8 + 64) % TEX;
+        const painted = sampleArt(ART.backdropImage, x / W + state.dir * 0.05, y / horizon);
+        const c = painted || sampleTex("sky", u, v);
+        putPx(x, y, c[0], c[1], c[2], 1);
+      }
+    } else {
+      const p = y - horizon;
+      const rowDist = H / (2 * p);
+      const stepX = (rowDist * planeX * 2) / W;
+      const stepY = (rowDist * planeY * 2) / W;
+      let floorX = state.px + rowDist * (dirX - planeX);
+      let floorY = state.py + rowDist * (dirY - planeY);
+      const fog = Math.max(0.22, 1 - rowDist / 14);
+      for (let x = 0; x < W; x++) {
+        const c = sampleTex("floor", floorX * TEX, floorY * TEX);
+        putPx(x, y, c[0], c[1], c[2], fog);
+        floorX += stepX;
+        floorY += stepY;
+      }
     }
   }
 
-  const sprites = state.enemies
-    .filter(function (e) {
-      return e.alive;
-    })
-    .map(function (e) {
-      return { e: e, dist: Math.hypot(e.x - state.px, e.y - state.py) };
-    })
-    .sort(function (a, b) {
-      return b.dist - a.dist;
-    });
-
-  for (let i = 0; i < sprites.length; i++) {
-    drawSprite(sprites[i].e);
+  for (let x = 0; x < W; x++) {
+    const cam = (2 * x) / W - 1;
+    const rdx = dirX + planeX * cam;
+    const rdy = dirY + planeY * cam;
+    const hit = cast(state.px, state.py, rdx, rdy);
+    state.zbuf[x] = hit.dist;
+    const lineH = Math.min(H * 3, (H / hit.dist) | 0);
+    const y0 = (horizon - lineH / 2) | 0;
+    const shade = Math.max(0.16, 1 - hit.dist / 15) * (hit.side ? 0.62 : 1);
+    let texU = (hit.wallX * TEX) | 0;
+    if ((hit.side === 0 && rdx > 0) || (hit.side === 1 && rdy < 0)) {
+      texU = TEX - texU - 1;
+    }
+    const texId = hit.tile === 5 ? 5 : hit.tile;
+    for (let y = 0; y < lineH; y++) {
+      const yy = y0 + y;
+      if (yy < 0 || yy >= H) continue;
+      let c = null;
+      if (hit.tile !== 5 && hit.tile !== 2) {
+        c = sampleArt(ART.sceneImage, hit.wallX, y / lineH);
+      }
+      if (!c) {
+        let tv = ((y / lineH) * TEX) | 0;
+        if (hit.tile === 5) tv = (tv + ((state.time * 12) | 0)) % TEX;
+        c = sampleTex(texId, texU, tv);
+      }
+      putPx(x, yy, c[0], c[1], c[2], shade);
+    }
   }
+
+  const sprites = [];
+  for (let i = 0; i < state.enemies.length; i++) {
+    if (state.enemies[i].alive) sprites.push(state.enemies[i]);
+  }
+  for (let i = 0; i < PROPS.length; i++) sprites.push(PROPS[i]);
+  sprites.sort(function (a, b) {
+    const da = Math.hypot(a.x - state.px, a.y - state.py);
+    const db = Math.hypot(b.x - state.px, b.y - state.py);
+    return db - da;
+  });
+  for (let i = 0; i < sprites.length; i++) {
+    if (sprites[i].kind === "guard" || sprites[i].kind === "target") {
+      drawPerson(sprites[i]);
+    } else {
+      drawProp(sprites[i]);
+    }
+  }
+
+  ctx.putImageData(frame, 0, 0);
   drawGun();
+}
+
+function projectSprite(x, y) {
+  const spriteX = x - state.px;
+  const spriteY = y - state.py;
+  const dirX = Math.cos(state.dir);
+  const dirY = Math.sin(state.dir);
+  const planeX = Math.cos(state.dir + Math.PI / 2) * 0.72;
+  const planeY = Math.sin(state.dir + Math.PI / 2) * 0.72;
+  const invDet = 1 / (planeX * dirY - dirX * planeY);
+  const tx = invDet * (dirY * spriteX - dirX * spriteY);
+  const ty = invDet * (-planeY * spriteX + planeX * spriteY);
+  return { tx: tx, ty: ty };
+}
+
+function drawPerson(e) {
+  const p = projectSprite(e.x, e.y);
+  if (p.ty <= 0.12) return;
+  const sx = ((W / 2) * (1 + p.tx / p.ty)) | 0;
+  const size = Math.min(H * 1.8, Math.abs(H / p.ty)) | 0;
+  const x0 = (sx - size / 2) | 0;
+  const y0 = ((H - size) / 2 + size * 0.08 + state.pitch * H) | 0;
+  const target = e.kind === "target";
+  for (let x = 0; x < size; x++) {
+    const cx = x0 + x;
+    if (cx < 0 || cx >= W) continue;
+    if (p.ty >= state.zbuf[cx]) continue;
+    const u = x / size;
+    for (let y = 0; y < size; y++) {
+      const cy = y0 + y;
+      if (cy < 0 || cy >= H) continue;
+      const v = y / size;
+      const col = e.hurt > 0 ? [255, 255, 255] : sampleArt(e.portrait, u, v) || personPixel(u, v, target, false);
+      if (!col) continue;
+      putPx(cx, cy, col[0], col[1], col[2], 1);
+    }
+  }
+}
+
+function personPixel(u, v, target, hurt) {
+  if (hurt) return [255, 255, 255];
+  const jacket = target ? [140, 24, 36] : [18, 18, 22];
+  const shirt = target ? [240, 220, 170] : [235, 230, 220];
+  if (v > 0.08 && v < 0.28 && u > 0.32 && u < 0.68) {
+    if (v < 0.14 && u > 0.42 && u < 0.58) return [28, 20, 18];
+    return [210, 170, 130];
+  }
+  if (v > 0.26 && v < 0.34 && u > 0.36 && u < 0.64) return [12, 12, 14];
+  if (v > 0.32 && v < 0.72 && u > 0.22 && u < 0.78) {
+    if (u > 0.44 && u < 0.56 && v < 0.55) return shirt;
+    if ((u > 0.34 && u < 0.4) || (u > 0.6 && u < 0.66)) return [200, 160, 50];
+    return jacket;
+  }
+  if (v > 0.7 && v < 0.92) {
+    if (u > 0.3 && u < 0.48) return [20, 20, 24];
+    if (u > 0.52 && u < 0.7) return [20, 20, 24];
+  }
+  if (v > 0.9 && ((u > 0.3 && u < 0.46) || (u > 0.54 && u < 0.7))) return [8, 8, 10];
+  if (v > 0.4 && v < 0.48 && u > 0.78 && u < 0.92) return [40, 40, 44];
+  return null;
+}
+
+function drawProp(p) {
+  const pr = projectSprite(p.x, p.y);
+  if (pr.ty <= 0.12) return;
+  const sx = ((W / 2) * (1 + pr.tx / pr.ty)) | 0;
+  const size = Math.min(H, Math.abs((H * 0.55) / pr.ty)) | 0;
+  const x0 = (sx - size / 2) | 0;
+  const y0 = ((H - size) / 2 + size * 0.35 + state.pitch * H) | 0;
+  for (let x = 0; x < size; x++) {
+    const cx = x0 + x;
+    if (cx < 0 || cx >= W) continue;
+    if (pr.ty >= state.zbuf[cx]) continue;
+    const u = x / size;
+    for (let y = 0; y < size; y++) {
+      const cy = y0 + y;
+      if (cy < 0 || cy >= H) continue;
+      const v = y / size;
+      const col = propPixel(p.kind, u, v);
+      if (col) putPx(cx, cy, col[0], col[1], col[2], 1);
+    }
+  }
+}
+
+function propPixel(kind, u, v) {
+  if (kind === "lantern") {
+    if (v > 0.15 && v < 0.55 && u > 0.3 && u < 0.7) return [255, 210, 90];
+    if (v > 0.5 && v < 0.85 && u > 0.38 && u < 0.62) return [40, 30, 20];
+    if (v > 0.1 && v < 0.2 && u > 0.25 && u < 0.75) return [180, 140, 50];
+    return null;
+  }
+  if (kind === "flute") {
+    if (v > 0.2 && v < 0.7 && u > 0.44 && u < 0.56) return [220, 200, 120];
+    if (v > 0.68 && v < 0.78 && u > 0.3 && u < 0.7) return [200, 160, 50];
+    if (v > 0.15 && v < 0.28 && u > 0.38 && u < 0.62) return [255, 240, 180];
+    return null;
+  }
+  if (kind === "ring") {
+    const d = Math.hypot(u - 0.5, v - 0.5);
+    if (d > 0.22 && d < 0.38) return [200, 40, 50];
+    if (d > 0.18 && d < 0.22) return [240, 200, 80];
+    return null;
+  }
+  if (kind === "plant") {
+    if (v > 0.55 && u > 0.35 && u < 0.65) return [90, 40, 30];
+    if (v < 0.6 && Math.abs(u - 0.5) < 0.28 - v * 0.15) return [30, 90, 50];
+    return null;
+  }
+  if (kind === "crate-deco") {
+    if (v > 0.35 && v < 0.95 && u > 0.2 && u < 0.8) {
+      if (v < 0.45) return [200, 160, 70];
+      return [120, 80, 40];
+    }
+    return null;
+  }
+  return null;
 }
 
 function cast(px, py, rdx, rdy) {
@@ -385,10 +794,13 @@ function cast(px, py, rdx, rdy) {
         side === 0
           ? (mapX - px + (1 - stepX) / 2) / rdx
           : (mapY - py + (1 - stepY) / 2) / rdy;
-      return { dist: Math.max(0.08, dist), tile: tile, side: side };
+      const safe = Math.max(0.08, dist);
+      let wallX = side === 0 ? py + safe * rdy : px + safe * rdx;
+      wallX -= Math.floor(wallX);
+      return { dist: safe, tile: tile, side: side, wallX: wallX };
     }
   }
-  return { dist: 24, tile: 5, side: 0 };
+  return { dist: 24, tile: 5, side: 0, wallX: 0 };
 }
 
 function drawSprite(e) {
@@ -477,6 +889,7 @@ function blip(freq, dur) {
 window.GAME_CONTRACT = {
   checkMission: checkMission,
   MISSION: MISSION,
+  ART: ART,
   WEAPON: WEAPON,
   ENEMY_TEMPLATES: ENEMY_TEMPLATES,
   get state() {

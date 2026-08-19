@@ -7,7 +7,7 @@ const context = { console };
 vm.createContext(context);
 vm.runInContext(
   fs.readFileSync(__dirname + "/data.js", "utf8") +
-    "\n;this.__export = { MAP, TILE, WEAPON, MISSION, ENEMY_TEMPLATES, PLAYER_START, ENDINGS, isSolid, checkMission, cloneEnemies };",
+    "\n;this.__export = { MAP, TILE, WEAPON, MISSION, ART, ENEMY_TEMPLATES, PLAYER_START, ENDINGS, isSolid, checkMission, cloneEnemies };",
   context
 );
 
@@ -16,6 +16,7 @@ const {
   TILE,
   WEAPON,
   MISSION,
+  ART,
   ENEMY_TEMPLATES,
   PLAYER_START,
   ENDINGS,
@@ -35,6 +36,15 @@ assert.ok(MISSION.primary.includes("Marcus Vale"));
 
 const target = ENEMY_TEMPLATES.find((e) => e.kind === "target");
 assert.ok(target && target.id === "marcus-vale");
+assert.ok(target.portrait && target.portrait.indexOf("marcus-vale") !== -1);
+assert.ok(ART.sceneImage.indexOf("assets/") === 0);
+assert.ok(ART.backdropImage.indexOf("assets/") === 0);
+assert.ok(fs.existsSync(__dirname + "/" + ART.sceneImage), "scene art on disk");
+assert.ok(fs.existsSync(__dirname + "/" + ART.backdropImage), "backdrop art on disk");
+ENEMY_TEMPLATES.forEach(function (e) {
+  assert.ok(e.portrait, e.id + " portrait");
+  assert.ok(fs.existsSync(__dirname + "/" + e.portrait), e.portrait);
+});
 assert.ok(ENEMY_TEMPLATES.filter((e) => e.kind === "guard").length >= 3);
 
 assert.strictEqual(checkMission({ targetDown: true, playerDead: false }), "complete");
@@ -54,6 +64,8 @@ assert.ok(html.includes("game.js"));
 const gameSrc = fs.readFileSync(__dirname + "/game.js", "utf8");
 assert.ok(gameSrc.includes("checkMission("));
 assert.ok(gameSrc.includes("window.GAME_CONTRACT"));
+assert.ok(gameSrc.includes("ArrowLeft"));
+assert.ok(gameSrc.includes("ArrowUp"));
 
 console.log("contract ok");
 console.log("  mission:", MISSION.id);
