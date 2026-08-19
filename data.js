@@ -16,7 +16,7 @@ const GAME = {
   title: "Death at the Devereux Gala",
   tagline: "They said the collection was to die for.",
   inspector: "You",
-  location: "Devereux penthouse — coat room",
+  location: "Monaco Harbor — Devereux yacht deck",
   time: "2:14 a.m.",
   investigationSeconds: 300,
   accusationSeconds: 45,
@@ -94,8 +94,8 @@ const CLUES = [
     shortLabel: "Flute",
     pointsTo: "marcus-vale",
     isRedHerring: false,
-    hotspot: { left: "14%", top: "62%" },
-    sceneHint: "A coupe on the marble console — lipstick on the rim.",
+    hotspot: { left: "16%", top: "72%" },
+    sceneHint: "A coupe on the deck bar — lipstick on the rim.",
     title: "The coupe with the bitter finish",
     inspection:
       "Simone's crimson on the rim. The bubbles are dying. At the bottom of the glass: a faint pharmaceutical film and the ghost of bitter almond. Tucked under the coaster, as if it slipped from a pocket in a hurry — a compounding-pharmacy receipt. Paid in cash. Initials MV. Delivery window stamped 9:40 p.m., ninety minutes before the first toast.",
@@ -108,8 +108,8 @@ const CLUES = [
     shortLabel: "Silk",
     pointsTo: "adrienne-devereux",
     isRedHerring: true,
-    hotspot: { left: "46%", top: "30%" },
-    sceneHint: "Gold silk snagged on the rack — sequins on the floor.",
+    hotspot: { left: "42%", top: "68%" },
+    sceneHint: "Torn gold silk on the lounge seating — sequins on the deck.",
     title: "A hostess gown, ruined",
     inspection:
       "A slash of gold silk, Adrienne's house livery for the evening, caught on a hanger like a confession. Sequins on the parquet. Tuberose perfume — hers, unmistakably — clinging to the tear. Two women fought here. Nails, fabric, pride.",
@@ -122,8 +122,8 @@ const CLUES = [
     shortLabel: "Phone",
     pointsTo: "lila-chen",
     isRedHerring: true,
-    hotspot: { left: "71%", top: "66%" },
-    sceneHint: "A screen still unlocked on the velvet bench.",
+    hotspot: { left: "63%", top: "74%" },
+    sceneHint: "A phone face-down on the side table beside a gold ashtray.",
     title: "An unsent execution",
     inspection:
       "Simone's phone, still warm. Draft to her lawyer: 'Lila's been skimming the sample sales and forging my signature on the atelier invoices. I fire her tonight. If she talks about the Guangzhou order, deny—' Unsent. Last photo: the two of them smiling, three hours ago, as if the knife were still in its drawer.",
@@ -136,8 +136,8 @@ const CLUES = [
     shortLabel: "Letter",
     pointsTo: "julian-cross",
     isRedHerring: true,
-    hotspot: { left: "29%", top: "42%" },
-    sceneHint: "Heavy paper peeking from a borrowed mink.",
+    hotspot: { left: "70%", top: "70%" },
+    sceneHint: "A folded note on the side table — heavy paper, no signature.",
     title: "A ghost of another season",
     inspection:
       "Folded into the lining of a mink that is not hers. No signature. 'Meet me where the photographers can't. I still think of the fitting room in Milan.' The prose is lush, a little theatrical — Julian's public voice. But the ink is browned, the hotel stamp is two years old, and the hand does not match the sketch-notes Julian signed at the door tonight.",
@@ -150,8 +150,8 @@ const CLUES = [
     shortLabel: "Ledger",
     pointsTo: "marcus-vale",
     isRedHerring: false,
-    hotspot: { left: "84%", top: "28%" },
-    sceneHint: "The valet's clipboard, still on its hook.",
+    hotspot: { left: "88%", top: "62%" },
+    sceneHint: "The cabin coat-door is ajar. Gold handle. Someone is still inside.",
     title: "Ten minutes, named",
     inspection:
       "Guest movements for the private terrace toast at 1:52 a.m. — fireworks, everyone accounted. A handwritten addendum in the valet's impatient script: 'M. Vale — coat room, 1:54–2:04. Said he was fetching her wrap. Did not reappear until the scream.' Ten minutes. The window in which Simone died.",
@@ -195,11 +195,11 @@ const ENDINGS = {
 };
 
 const BRIEFING = {
-  headline: "The coat room, after the last toast",
+  headline: "Sunset, Monaco Harbor — after the last toast",
   paragraphs: [
-    "Adrienne Devereux's penthouse. The afterparty for Julian Cross's spring line. In the coat room, supermodel-critic Simone Vale is dead.",
-    "Four glittering suspects. Five pieces of evidence in one room. The cars downstairs are already leaving.",
-    "Click every hotspot. Fill the dossier. Then accuse. If you name no one, the night names no one.",
+    "Adrienne Devereux's black-and-gold superyacht, moored off the Casino. The afterparty for Julian Cross's spring line. In the coat cabin off the deck, supermodel-critic Simone Vale is dead.",
+    "Four glittering suspects. Five pieces of evidence on one deck. The tenders downstairs are already leaving.",
+    "Click every hotspot. The railing is scenery. Fill the dossier. Then accuse. If you name no one, the night names no one.",
   ],
 };
 

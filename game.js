@@ -115,22 +115,38 @@ function restart() {
 
 function renderHotspots() {
   const mount = document.getElementById("hotspots");
+  const existing = [...mount.querySelectorAll(".hotspot[data-clue], .hotspot[data-clue-id]")];
+
+  if (existing.length) {
+    existing.forEach((btn) => bindHotspot(btn, btn.dataset.clue || btn.dataset.clueId));
+    return;
+  }
+
   mount.innerHTML = "";
   CLUES.forEach((clue) => {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "hotspot";
-    btn.id = `hotspot-${clue.id}`;
-    btn.dataset.clueId = clue.id;
     btn.style.left = clue.hotspot.left;
     btn.style.top = clue.hotspot.top;
-    btn.setAttribute("aria-label", `Inspect ${clue.name}. ${clue.sceneHint}`);
-    btn.innerHTML = `<span class="hotspot-ring"></span><span class="hotspot-label">${escapeHtml(
-      clue.shortLabel
-    )}</span>`;
-    btn.addEventListener("click", () => inspectClue(clue.id));
+    btn.innerHTML = `<span class="hotspot-ring"></span><span class="hotspot-label"></span>`;
+    bindHotspot(btn, clue.id);
     mount.appendChild(btn);
   });
+}
+
+/** Partner B owns layout: `.hotspot` + `data-clue`. Copy still comes from data.js. */
+function bindHotspot(btn, id) {
+  const clue = getClue(id);
+  if (!clue) return;
+  btn.dataset.clue = clue.id;
+  btn.dataset.clueId = clue.id;
+  btn.id = `hotspot-${clue.id}`;
+  btn.classList.remove("is-found");
+  btn.setAttribute("aria-label", `Inspect ${clue.name}. ${clue.sceneHint}`);
+  const label = btn.querySelector(".hotspot-label");
+  if (label) label.textContent = clue.shortLabel;
+  btn.onclick = () => inspectClue(clue.id);
 }
 
 function inspectClue(id) {

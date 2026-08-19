@@ -2,17 +2,17 @@
 
 Point-and-click murder mystery. Static HTML/CSS/JS — no backend.
 
-Simone Vale is found dead in the coat room of Adrienne Devereux's fashion afterparty. Inspect five hotspots, then accuse one of four suspects before the night closes.
+Simone Vale is found dead in the coat cabin of Adrienne Devereux's black-and-gold yacht, moored in Monaco Harbor at sunset. Inspect five hotspots, then accuse one of four suspects before the night closes.
 
 ## Play
 
-Open `index.html` in a browser, or from this folder:
+A local static server is the working preview while we build:
 
 ```bash
-python3 -m http.server 8080
+python3 -m http.server 8080 --bind 0.0.0.0
 ```
 
-Then visit `http://localhost:8080`.
+Then visit [http://localhost:8080](http://localhost:8080). Refresh after HTML/CSS edits — there is no build step.
 
 ## Files
 

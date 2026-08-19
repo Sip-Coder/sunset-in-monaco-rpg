@@ -48,6 +48,8 @@ assert.ok(gameSrc.includes("window.GAME_CONTRACT"), "contract exposed for playte
 
 const html = fs.readFileSync(__dirname + "/index.html", "utf8");
 assert.ok(html.includes('id="hotspots"'));
+assert.ok(html.includes('data-clue="champagne-flute"'));
+assert.ok(html.includes('class="yacht-deck"'));
 assert.ok(html.includes("data.js"));
 assert.ok(html.includes("game.js"));
 
