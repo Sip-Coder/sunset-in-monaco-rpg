@@ -497,6 +497,7 @@ function update(dt) {
     e.cooldown = Math.max(0, e.cooldown - dt);
     e.hurt = Math.max(0, e.hurt - dt);
     const dist = Math.hypot(e.x - state.px, e.y - state.py);
+    if (dist > 13) continue;
     if (dist < 10 && hasLos(e.x, e.y, state.px, state.py)) {
       const ang = Math.atan2(state.py - e.y, state.px - e.x);
       if (dist > 1.4) {
@@ -641,7 +642,10 @@ function draw() {
     return db - da;
   });
   for (let i = 0; i < sprites.length; i++) {
-    if (sprites[i].kind === "guard" || sprites[i].kind === "target") {
+    const dist = Math.hypot(sprites[i].x - state.px, sprites[i].y - state.py);
+    if (dist > 18) continue;
+    const kind = sprites[i].kind;
+    if (kind === "guard" || kind === "elite" || kind === "target") {
       drawPerson(sprites[i]);
     } else {
       drawProp(sprites[i]);
@@ -778,7 +782,7 @@ function cast(px, py, rdx, rdy) {
   let sideX = rdx < 0 ? (px - mapX) * deltaX : (mapX + 1 - px) * deltaX;
   let sideY = rdy < 0 ? (py - mapY) * deltaY : (mapY + 1 - py) * deltaY;
   let side = 0;
-  for (let i = 0; i < 48; i++) {
+  for (let i = 0; i < 72; i++) {
     if (sideX < sideY) {
       sideX += deltaX;
       mapX += stepX;

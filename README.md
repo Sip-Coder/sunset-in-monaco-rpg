@@ -35,6 +35,7 @@ Open [http://localhost:8080](http://localhost:8080). Click the view to lock the 
 - `checkMission({ targetDown, playerDead })` → `"complete"` \| `"failed"` \| `"active"`
 - Target id: `marcus-vale`
 - Weapon id: `ppk-64`
+- Full yacht map (`44×30`) with hostiles in aft, galley, salon, cabins, ballroom, starboard hall, and bow
 
 ```bash
 node test-contract.js

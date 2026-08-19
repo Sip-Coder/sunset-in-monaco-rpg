@@ -25,8 +25,8 @@ const {
   cloneEnemies,
 } = context.__export;
 
-assert.ok(MAP.length >= 10, "map rows");
-assert.ok(MAP[0].length >= 10, "map cols");
+assert.ok(MAP.length >= 24, "map rows");
+assert.ok(MAP[0].length >= 30, "map cols");
 assert.strictEqual(TILE[0].solid, false);
 assert.ok(TILE[1].solid);
 assert.ok(!isSolid(PLAYER_START.x | 0, PLAYER_START.y | 0), "spawn walkable");
@@ -44,8 +44,10 @@ assert.ok(fs.existsSync(__dirname + "/" + ART.backdropImage), "backdrop art on d
 ENEMY_TEMPLATES.forEach(function (e) {
   assert.ok(e.portrait, e.id + " portrait");
   assert.ok(fs.existsSync(__dirname + "/" + e.portrait), e.portrait);
+  assert.ok(!isSolid(e.x | 0, e.y | 0), e.id + " walkable");
 });
-assert.ok(ENEMY_TEMPLATES.filter((e) => e.kind === "guard").length >= 3);
+assert.ok(ENEMY_TEMPLATES.length >= 20, "full hostile roster");
+assert.ok(ENEMY_TEMPLATES.filter((e) => e.kind === "guard" || e.kind === "elite").length >= 15);
 
 assert.strictEqual(checkMission({ targetDown: true, playerDead: false }), "complete");
 assert.strictEqual(checkMission({ targetDown: false, playerDead: true }), "failed");
@@ -71,3 +73,4 @@ console.log("contract ok");
 console.log("  mission:", MISSION.id);
 console.log("  weapon:", WEAPON.name);
 console.log("  hostiles:", ENEMY_TEMPLATES.length);
+console.log("  map:", MAP[0].length + "x" + MAP.length);
