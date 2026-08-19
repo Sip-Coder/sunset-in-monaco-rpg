@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Death at the Devereux Gala</title>
+    <meta
+      name="description"
+      content="A point-and-click noir murder mystery. Simone Vale is dead in the coat room. Accuse the right suspect before the night swallows the truth."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Outfit:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect fill='%23140a0c' width='64' height='64'/%3E%3Ccircle cx='32' cy='32' r='14' fill='none' stroke='%23c9b37a' stroke-width='2'/%3E%3Cpath d='M32 18v28M18 32h28' stroke='%238b1e3f' stroke-width='2'/%3E%3C/svg%3E"
+    />
+  </head>
+  <body>
+    <a class="skip-link" href="#app">Skip to game</a>
+    <div id="grain" aria-hidden="true"></div>
+
+    <div id="app">
+      <!-- TITLE -->
+      <section id="screen-title" class="screen is-active" data-screen="title">
+        <div class="title-frame">
+          <p class="kicker">A noir mystery in five clues</p>
+          <h1 id="game-title">Death at the Devereux Gala</h1>
+          <p id="game-tagline" class="tagline">They said the collection was to die for.</p>
+          <p class="title-meta">Elite afterparty · Coat room · One body</p>
+          <button type="button" class="btn btn-gold" id="btn-enter" autofocus>
+            Enter the penthouse
+          </button>
+        </div>
+      </section>
+
+      <!-- BRIEFING -->
+      <section id="screen-briefing" class="screen" data-screen="briefing" hidden>
+        <div class="briefing-card">
+          <p class="kicker" id="briefing-time">2:14 a.m.</p>
+          <h2 id="briefing-headline"></h2>
+          <div id="briefing-copy" class="prose"></div>
+          <div class="suspect-row" id="briefing-suspects" aria-label="Suspects"></div>
+          <button type="button" class="btn btn-gold" id="btn-begin">
+            Begin the investigation
+          </button>
+        </div>
+      </section>
+
+      <!-- INVESTIGATE -->
+      <section id="screen-investigate" class="screen" data-screen="investigate" hidden>
+        <header class="hud">
+          <div class="hud-brand">
+            <span class="hud-mark">DVX</span>
+            <div>
+              <p class="hud-title">Coat room</p>
+              <p class="hud-sub" id="hud-progress">0 / 5 clues</p>
+            </div>
+          </div>
+          <div class="hud-clock" aria-live="polite">
+            <span class="clock-label">Guests depart in</span>
+            <span id="timer-display" class="clock-value">5:00</span>
+          </div>
+          <button type="button" class="btn btn-ghost" id="btn-accuse" disabled>
+            Confront the suspects
+          </button>
+        </header>
+
+        <div class="investigate-layout">
+          <div
+            id="scene"
+            class="scene"
+            role="application"
+            aria-label="The Devereux coat room. Click glowing hotspots to inspect clues."
+          >
+            <div class="scene-sky"></div>
+            <div class="window-city" aria-hidden="true"></div>
+            <div class="chandelier" aria-hidden="true"></div>
+            <div class="curtain curtain-left" aria-hidden="true"></div>
+            <div class="curtain curtain-right" aria-hidden="true"></div>
+
+            <div class="rack rack-left" aria-hidden="true">
+              <div class="bar"></div>
+              <div class="coat coat-fur"></div>
+              <div class="coat coat-black"></div>
+              <div class="coat coat-wine"></div>
+              <div class="coat coat-ivory"></div>
+            </div>
+            <div class="rack rack-right" aria-hidden="true">
+              <div class="bar"></div>
+              <div class="coat coat-gold-silk"></div>
+              <div class="coat coat-navy"></div>
+              <div class="coat coat-crimson"></div>
+            </div>
+
+            <div class="console" aria-hidden="true">
+              <div class="marble"></div>
+              <div class="flute-prop"></div>
+            </div>
+            <div class="bench" aria-hidden="true">
+              <div class="phone-prop"></div>
+            </div>
+            <div class="valet" aria-hidden="true">
+              <div class="clipboard-prop"></div>
+            </div>
+            <div class="drape" aria-hidden="true" title="Simone Vale — already examined"></div>
+            <div class="heel" aria-hidden="true"></div>
+            <div class="letter-prop" aria-hidden="true"></div>
+
+            <div id="hotspots"></div>
+            <div class="vignette" aria-hidden="true"></div>
+            <p class="scene-caption">
+              Simone Vale, 2:14 a.m. — click the room. Nothing here is merely décor.
+            </p>
+          </div>
+
+          <aside class="dossier" aria-label="Case dossier">
+            <h2>Dossier</h2>
+            <p class="dossier-victim" id="dossier-victim"></p>
+            <h3>Clues</h3>
+            <ol id="clue-list" class="clue-list"></ol>
+            <h3>Suspects</h3>
+            <ul id="suspect-list" class="suspect-list"></ul>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ACCUSE -->
+      <section id="screen-accuse" class="screen" data-screen="accuse" hidden>
+        <div class="accuse-wrap">
+          <header class="accuse-header">
+            <p class="kicker">The commissioner wants a name</p>
+            <h2>Who killed Simone Vale?</h2>
+            <p class="accuse-timer">
+              Accuse in <span id="accuse-timer-display">0:45</span> or the night closes.
+            </p>
+          </header>
+          <div id="accuse-grid" class="accuse-grid"></div>
+          <p class="accuse-hint">Choose carefully. A wrong name lets the killer walk.</p>
+        </div>
+      </section>
+
+      <!-- ENDING -->
+      <section id="screen-ending" class="screen" data-screen="ending" hidden>
+        <article class="ending-card" id="ending-card">
+          <p class="kicker" id="ending-kicker"></p>
+          <h2 id="ending-title"></h2>
+          <div id="ending-body" class="prose"></div>
+          <p class="ending-id" id="ending-id-label" hidden></p>
+          <button type="button" class="btn btn-gold" id="btn-restart">Play again</button>
+        </article>
+      </section>
+    </div>
+
+    <!-- CLUE MODAL -->
+    <div id="clue-modal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-card">
+        <p class="kicker" id="modal-kicker">Evidence</p>
+        <h2 id="modal-title"></h2>
+        <p id="modal-inspection" class="prose"></p>
+        <p id="modal-analysis" class="analysis"></p>
+        <button type="button" class="btn btn-gold" id="btn-close-modal">Slip it into the dossier</button>
+      </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="game.js"></script>
+  </body>
+</html>
