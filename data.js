@@ -94,7 +94,7 @@ const CLUES = [
     shortLabel: "Flute",
     pointsTo: "marcus-vale",
     isRedHerring: false,
-    hotspot: { left: "14%", top: "62%" },
+    hotspot: { left: "13%", top: "70%" },
     sceneHint: "A coupe on the marble console — lipstick on the rim.",
     title: "The coupe with the bitter finish",
     inspection:
@@ -108,7 +108,7 @@ const CLUES = [
     shortLabel: "Silk",
     pointsTo: "adrienne-devereux",
     isRedHerring: true,
-    hotspot: { left: "46%", top: "30%" },
+    hotspot: { left: "70%", top: "40%" },
     sceneHint: "Gold silk snagged on the rack — sequins on the floor.",
     title: "A hostess gown, ruined",
     inspection:
@@ -122,7 +122,7 @@ const CLUES = [
     shortLabel: "Phone",
     pointsTo: "lila-chen",
     isRedHerring: true,
-    hotspot: { left: "71%", top: "66%" },
+    hotspot: { left: "76%", top: "76%" },
     sceneHint: "A screen still unlocked on the velvet bench.",
     title: "An unsent execution",
     inspection:
@@ -136,7 +136,7 @@ const CLUES = [
     shortLabel: "Letter",
     pointsTo: "julian-cross",
     isRedHerring: true,
-    hotspot: { left: "29%", top: "42%" },
+    hotspot: { left: "27%", top: "45%" },
     sceneHint: "Heavy paper peeking from a borrowed mink.",
     title: "A ghost of another season",
     inspection:
@@ -150,7 +150,7 @@ const CLUES = [
     shortLabel: "Ledger",
     pointsTo: "marcus-vale",
     isRedHerring: false,
-    hotspot: { left: "84%", top: "28%" },
+    hotspot: { left: "90%", top: "24%" },
     sceneHint: "The valet's clipboard, still on its hook.",
     title: "Ten minutes, named",
     inspection:

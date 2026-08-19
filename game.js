@@ -231,6 +231,7 @@ function renderAccusation() {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "suspect-card";
+    btn.dataset.suspectId = s.id;
     btn.style.setProperty("--accent", s.accent);
     btn.innerHTML = `
       <span class="portrait lg" style="--accent:${s.accent}">${escapeHtml(s.initials)}</span>
