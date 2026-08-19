@@ -1,244 +1,265 @@
 /**
- * Death at the Devereux Gala — shared data contract
- * -------------------------------------------------
- * Partner A owns this file. Partner B reads it for IDs, copy, and hotspot layout.
- * Do not duplicate these objects in HTML or CSS.
- *
- * Contract
- *   clues                 Array of collected clue IDs (strings). Mutated at runtime in game.js.
- *   checkEnding(accusedSuspect, clues)  lives here → "correct" | "wrong" | "timeout"
- *   SUSPECTS[].id         Stable suspect IDs. Killer is KILLER_ID.
- *   CLUES[].id            Stable clue IDs. Match hotspot data-clue-id attributes.
- *   CLUES[].hotspot       Percentage positions inside #scene.
+ * Devereux 64 — mission data (shared contract)
+ * Original spy-FPS set on the Devereux yacht. N64-era feel, original fiction.
  */
 
-const GAME = {
-  title: "Death at the Devereux Gala",
-  tagline: "They said the collection was to die for.",
-  inspector: "You",
-  location: "Devereux penthouse — coat room",
-  time: "2:14 a.m.",
-  investigationSeconds: 300,
-  accusationSeconds: 45,
+const MISSION = {
+  id: "harbor-night",
+  title: "Harbor Night",
+  kicker: "Background",
+  copy: "Board at the aft ramp. Sweep galley, cabins, ballroom, starboard hall, and bow. Neutralize Marcus Vale.",
+  primary: "Neutralize Marcus Vale",
+  secondary: "Clear every deck of hostiles",
 };
 
-const VICTIM = {
-  id: "simone-vale",
-  name: "Simone Vale",
-  role: "Model, critic, and tonight's casualty",
-  blurb:
-    "Found in the coat room with her lipstick still perfect and a champagne coupe still fizzing. She came to the afterparty to be seen. She stayed long enough to be silenced.",
+/** Painted art from Partner A's branch — paths only, no duplicated pixels. */
+const ART = {
+  sceneImage: "assets/scene-coatroom.jpg",
+  backdropImage: "assets/backdrop-ballroom.jpg",
 };
 
-const KILLER_ID = "marcus-vale";
+const PORTRAITS = {
+  julian: "assets/portraits/julian-cross.jpg",
+  adrienne: "assets/portraits/adrienne-devereux.jpg",
+  lila: "assets/portraits/lila-chen.jpg",
+  marcus: "assets/portraits/marcus-vale.jpg",
+};
 
-const SUSPECTS = [
-  {
-    id: "julian-cross",
-    name: "Julian Cross",
-    role: "Designer",
-    motive: "Reputation",
-    initials: "JC",
-    accent: "#c9b37a",
-    dossier:
-      "Tonight's darling. His spring line just walked. Simone was preparing a column that would have called the 'couture' what it is: mill work with a Paris label stitched over the seam.",
-    alibi:
-      "Swears he was on the terrace for the fireworks toast — and that every camera was pointed at him.",
-    isKiller: false,
-  },
-  {
-    id: "adrienne-devereux",
-    name: "Adrienne Devereux",
-    role: "Host",
-    motive: "Jealousy",
-    initials: "AD",
-    accent: "#8b1e3f",
-    dossier:
-      "The penthouse is hers, the guest list is hers, and for one season so was Simone's fiancé. She smiles as if scandal were a house champagne — always on ice, never admitted.",
-    alibi:
-      "Circulating. Kissing cheeks. Being photographed beside the ice sculpture of her own initial.",
-    isKiller: false,
-  },
-  {
-    id: "marcus-vale",
-    name: "Marcus Vale",
-    role: "Husband",
-    motive: "Money",
-    initials: "MV",
-    accent: "#6a8aa8",
-    dossier:
-      "Simone's husband. Charm in a dinner jacket. The markers from three casinos would buy a lesser townhouse. He keeps saying 'my wife' as if the possessive still holds.",
-    alibi:
-      "Fetching her wrap, he says. Ten minutes in the coat room. Ten minutes no one else can vouch for.",
-    isKiller: true,
-  },
-  {
-    id: "lila-chen",
-    name: "Lila Chen",
-    role: "Assistant",
-    motive: "Self-preservation",
-    initials: "LC",
-    accent: "#2f6b58",
-    dossier:
-      "Simone's right hand — bookings, invoices, the Guangzhou sample orders no one was meant to see. She has the look of someone who has already packed a bag.",
-    alibi:
-      "Back of house, 'handling a delivery.' Her hands shake when she says it.",
-    isKiller: false,
-  },
-];
+const WEAPON = {
+  id: "ppk-64",
+  name: "PPK-64",
+  magSize: 12,
+  reserve: 96,
+  damage: 34,
+  fireCooldown: 0.26,
+  reloadTime: 1.05,
+  range: 20,
+};
 
-const CLUES = [
-  {
-    id: "champagne-flute",
-    name: "Champagne flute",
-    shortLabel: "Flute",
-    pointsTo: "marcus-vale",
-    isRedHerring: false,
-    hotspot: { left: "14%", top: "62%" },
-    sceneHint: "A coupe on the marble console — lipstick on the rim.",
-    title: "The coupe with the bitter finish",
-    inspection:
-      "Simone's crimson on the rim. The bubbles are dying. At the bottom of the glass: a faint pharmaceutical film and the ghost of bitter almond. Tucked under the coaster, as if it slipped from a pocket in a hurry — a compounding-pharmacy receipt. Paid in cash. Initials MV. Delivery window stamped 9:40 p.m., ninety minutes before the first toast.",
-    analysis:
-      "Poison, not passion. A paper trail in Marcus Vale's hand. This is the only clue that names a method.",
-  },
-  {
-    id: "torn-dress",
-    name: "Torn dress",
-    shortLabel: "Silk",
-    pointsTo: "adrienne-devereux",
-    isRedHerring: true,
-    hotspot: { left: "46%", top: "30%" },
-    sceneHint: "Gold silk snagged on the rack — sequins on the floor.",
-    title: "A hostess gown, ruined",
-    inspection:
-      "A slash of gold silk, Adrienne's house livery for the evening, caught on a hanger like a confession. Sequins on the parquet. Tuberose perfume — hers, unmistakably — clinging to the tear. Two women fought here. Nails, fabric, pride.",
-    analysis:
-      "Adrienne had her hands on Simone. Jealousy writes itself. A scuffle is not a sentence. File as red herring — unless the other evidence agrees, which it does not.",
-  },
-  {
-    id: "phone",
-    name: "Phone",
-    shortLabel: "Phone",
-    pointsTo: "lila-chen",
-    isRedHerring: true,
-    hotspot: { left: "71%", top: "66%" },
-    sceneHint: "A screen still unlocked on the velvet bench.",
-    title: "An unsent execution",
-    inspection:
-      "Simone's phone, still warm. Draft to her lawyer: 'Lila's been skimming the sample sales and forging my signature on the atelier invoices. I fire her tonight. If she talks about the Guangzhou order, deny—' Unsent. Last photo: the two of them smiling, three hours ago, as if the knife were still in its drawer.",
-    analysis:
-      "Lila had a career to bury. Fear is a motive. Drafts do not pour poison. Red herring — a scandal, not a murder.",
-  },
-  {
-    id: "love-letter",
-    name: "Unsigned love letter",
-    shortLabel: "Letter",
-    pointsTo: "julian-cross",
-    isRedHerring: true,
-    hotspot: { left: "29%", top: "42%" },
-    sceneHint: "Heavy paper peeking from a borrowed mink.",
-    title: "A ghost of another season",
-    inspection:
-      "Folded into the lining of a mink that is not hers. No signature. 'Meet me where the photographers can't. I still think of the fitting room in Milan.' The prose is lush, a little theatrical — Julian's public voice. But the ink is browned, the hotel stamp is two years old, and the hand does not match the sketch-notes Julian signed at the door tonight.",
-    analysis:
-      "Scandal loves a designer. This letter is an old heat, or an old fantasy. It did not kill her. Red herring.",
-  },
-  {
-    id: "timeline-note",
-    name: "Timeline note",
-    shortLabel: "Ledger",
-    pointsTo: "marcus-vale",
-    isRedHerring: false,
-    hotspot: { left: "84%", top: "28%" },
-    sceneHint: "The valet's clipboard, still on its hook.",
-    title: "Ten minutes, named",
-    inspection:
-      "Guest movements for the private terrace toast at 1:52 a.m. — fireworks, everyone accounted. A handwritten addendum in the valet's impatient script: 'M. Vale — coat room, 1:54–2:04. Said he was fetching her wrap. Did not reappear until the scream.' Ten minutes. The window in which Simone died.",
-    analysis:
-      "Opportunity, timestamped. It matches the man on the pharmacy receipt. Motive, method, and a clock that does not lie.",
-  },
-];
+const PLAYER_START = { x: 3.5, y: 14.5, dir: 0 };
+
+const TILE = {
+  0: { solid: false, name: "deck" },
+  1: { solid: true, name: "hull", color: [18, 18, 18] },
+  2: { solid: true, name: "gold", color: [212, 175, 55] },
+  3: { solid: true, name: "cabin", color: [72, 28, 36] },
+  4: { solid: true, name: "crate", color: [48, 40, 32] },
+  5: { solid: true, name: "water", color: [0, 18, 51] },
+};
+
+function fillRect(m, x0, y0, x1, y1, t) {
+  for (let y = y0; y <= y1; y++) {
+    for (let x = x0; x <= x1; x++) {
+      if (m[y] && m[y][x] !== undefined) m[y][x] = t;
+    }
+  }
+}
+
+function door(m, x, y) {
+  if (m[y] && m[y][x] !== undefined) m[y][x] = 0;
+}
+
+function makeYachtMap() {
+  const w = 44;
+  const h = 30;
+  const m = [];
+  for (let y = 0; y < h; y++) {
+    m[y] = [];
+    for (let x = 0; x < w; x++) m[y][x] = 5;
+  }
+  fillRect(m, 1, 1, w - 2, h - 2, 1);
+  fillRect(m, 2, 2, w - 3, h - 3, 0);
+
+  fillRect(m, 12, 2, 13, 10, 1);
+  door(m, 12, 6);
+  door(m, 13, 6);
+  door(m, 12, 9);
+  door(m, 13, 9);
+
+  fillRect(m, 22, 2, 23, 9, 1);
+  door(m, 22, 5);
+  door(m, 23, 5);
+
+  fillRect(m, 29, 2, 29, 10, 1);
+  door(m, 29, 7);
+  fillRect(m, 35, 2, 35, 10, 1);
+  door(m, 35, 7);
+
+  fillRect(m, 2, 11, 41, 11, 1);
+  door(m, 4, 11);
+  door(m, 5, 11);
+  door(m, 18, 11);
+  door(m, 19, 11);
+  door(m, 32, 11);
+  door(m, 33, 11);
+
+  fillRect(m, 2, 19, 41, 19, 1);
+  door(m, 8, 19);
+  door(m, 9, 19);
+  door(m, 24, 19);
+  door(m, 25, 19);
+  door(m, 36, 19);
+  door(m, 37, 19);
+
+  fillRect(m, 16, 3, 18, 4, 3);
+  fillRect(m, 24, 3, 26, 4, 3);
+  fillRect(m, 31, 4, 33, 5, 3);
+  fillRect(m, 37, 3, 39, 4, 3);
+  fillRect(m, 6, 21, 8, 22, 3);
+  fillRect(m, 20, 22, 22, 23, 3);
+
+  m[8][17] = 2;
+  m[8][20] = 2;
+  m[14][16] = 2;
+  m[14][24] = 2;
+  m[16][30] = 2;
+  m[22][28] = 2;
+
+  m[4][5] = 4;
+  m[4][6] = 4;
+  m[9][8] = 4;
+  m[14][7] = 4;
+  m[15][8] = 4;
+  m[13][26] = 4;
+  m[9][32] = 4;
+  m[22][18] = 4;
+  m[22][19] = 4;
+  m[24][34] = 4;
+
+  return m;
+}
+
+const MAP = makeYachtMap();
+
+function g(id, x, y, face, kind, hp) {
+  const k = kind || "guard";
+  return {
+    id: id,
+    x: x,
+    y: y,
+    hp: hp || (k === "elite" ? 110 : k === "target" ? 160 : 70),
+    kind: k,
+    portrait: PORTRAITS[face],
+  };
+}
+
+function collectFloor(x0, y0, x1, y1) {
+  const spots = [];
+  for (let y = y0; y <= y1; y++) {
+    for (let x = x0; x <= x1; x++) {
+      if (MAP[y] && MAP[y][x] === 0) spots.push({ x: x + 0.5, y: y + 0.5 });
+    }
+  }
+  return spots;
+}
+
+function takeSpawns(spots, count, skipNearStart) {
+  const picked = [];
+  if (!spots.length) return picked;
+  const step = Math.max(1, Math.floor(spots.length / count));
+  for (let i = 0; i < spots.length && picked.length < count; i += step) {
+    const s = spots[i];
+    if (skipNearStart && Math.hypot(s.x - PLAYER_START.x, s.y - PLAYER_START.y) < 4) continue;
+    picked.push(s);
+  }
+  return picked;
+}
+
+const FACE = ["julian", "adrienne", "lila"];
+
+function roster() {
+  const rooms = [
+    { name: "aft", box: [2, 12, 11, 18], n: 5 },
+    { name: "galley", box: [2, 2, 11, 10], n: 4 },
+    { name: "salon", box: [14, 2, 21, 10], n: 4 },
+    { name: "cabins", box: [24, 2, 41, 10], n: 6 },
+    { name: "ballroom", box: [14, 12, 28, 18], n: 6 },
+    { name: "starboard", box: [30, 12, 41, 18], n: 5 },
+    { name: "bow", box: [2, 20, 34, 26], n: 7 },
+  ];
+  const list = [];
+  let n = 0;
+  rooms.forEach(function (room) {
+    const spots = takeSpawns(collectFloor(room.box[0], room.box[1], room.box[2], room.box[3]), room.n, true);
+    spots.forEach(function (s, i) {
+      n += 1;
+      const elite = i === spots.length - 1 && room.n >= 5;
+      list.push(g(room.name + "-" + n, s.x, s.y, FACE[n % 3], elite ? "elite" : "guard"));
+    });
+  });
+  const bow = collectFloor(35, 20, 41, 26);
+  const vale = bow[bow.length - 1] || { x: 38.5, y: 24.5 };
+  list.push(g("marcus-vale", vale.x, vale.y, "marcus", "target", 160));
+  return list;
+}
+
+const ENEMY_TEMPLATES = roster();
+
+const PROPS = [
+  { x: 6.4, y: 13.5, kind: "lantern" },
+  { x: 8.5, y: 16.5, kind: "flute" },
+  { x: 10.5, y: 14.5, kind: "plant" },
+  { x: 7.5, y: 4.5, kind: "crate-deco" },
+  { x: 15.5, y: 6.5, kind: "lantern" },
+  { x: 19.5, y: 8.5, kind: "flute" },
+  { x: 17.5, y: 14.5, kind: "ring" },
+  { x: 21.5, y: 16.5, kind: "lantern" },
+  { x: 26.5, y: 6.5, kind: "plant" },
+  { x: 32.5, y: 8.5, kind: "flute" },
+  { x: 38.5, y: 6.5, kind: "lantern" },
+  { x: 33.5, y: 14.5, kind: "crate-deco" },
+  { x: 38.5, y: 16.5, kind: "ring" },
+  { x: 10.5, y: 22.5, kind: "lantern" },
+  { x: 16.5, y: 24.5, kind: "flute" },
+  { x: 27.5, y: 22.5, kind: "plant" },
+  { x: 34.5, y: 24.5, kind: "lantern" },
+  { x: 38.5, y: 22.5, kind: "flute" },
+].filter(function (p) {
+  return MAP[p.y | 0] && MAP[p.y | 0][p.x | 0] === 0;
+});
 
 const ENDINGS = {
-  correct: {
-    id: "correct",
-    kicker: "Case closed",
-    title: "You name Marcus Vale",
-    body: [
-      "He laughs too long. Then the mask slips — not grief. Accounting.",
-      "Simone had found the markers against the Vale trust. Worse: the divorce papers were already signed. Dawn would have walked the penthouse, the art, and the policy out the door with her.",
-      "The twist is not the poison. The Guangzhou knockoffs were never Julian's secret. They were Marcus's. He had been laundering casino losses through 'sample inventory' billed to Simone's brand. Lila noticed the numbers. Simone noticed Lila. Marcus noticed Simone reaching for her phone.",
-      "The champagne, he says, was a kindness. She hated scenes.",
-      "He is led out in cuffs. The photographers finally have their shot.",
-    ],
+  complete: {
+    id: "complete",
+    kicker: "Mission complete",
+    title: "Vale is down",
+    body: "The yacht goes quiet. Harbor lights smear on black water. Primary objective complete.",
   },
-  wrong: {
-    id: "wrong",
-    kicker: "The wrong name",
-    title: "They walk",
-    body: [
-      "The room exhales the wrong way. Your accused is taken for questioning. The lab will confirm the pharmacy receipt by morning — but morning is a lifetime in this zip code.",
-      "Marcus Vale is already on a dawn flight booked under his mother's maiden name. He walks.",
-      "By the time the style section prints, it will be a beautiful woman, a beautiful party, and an ugly man who got away.",
-    ],
-  },
-  timeout: {
-    id: "timeout",
-    kicker: "Unsolved",
-    title: "The night swallows the truth",
-    body: [
-      "The last town-car doors. Detectives in cheap coats replace you. Evidence is bagged by people who do not know which lipstick is a clue.",
-      "In the morning the papers print four alibis and no arrest. Death at the Devereux Gala remains unsolved — which, in this crowd, is another word for forgotten.",
-    ],
+  failed: {
+    id: "failed",
+    kicker: "Mission failed",
+    title: "You are down",
+    body: "The deck takes you. The afterparty continues without an inspector.",
   },
 };
 
-const BRIEFING = {
-  headline: "The coat room, after the last toast",
-  paragraphs: [
-    "Adrienne Devereux's penthouse. The afterparty for Julian Cross's spring line. In the coat room, supermodel-critic Simone Vale is dead.",
-    "Four glittering suspects. Five pieces of evidence in one room. The cars downstairs are already leaving.",
-    "Click every hotspot. Fill the dossier. Then accuse. If you name no one, the night names no one.",
-  ],
-};
-
-const WRONG_ENDING_BY_SUSPECT = {
-  "julian-cross":
-    "Julian is photographed in cuffs that will not last the hour. His lawyer calls it a 'creative misunderstanding.' The column Simone never published would have hurt him. It would not have killed her.",
-  "adrienne-devereux":
-    "Adrienne allows herself to be escorted as if it were another seating arrangement. The torn silk will be explained as a 'moment.' Jealousy is not poison. She knows it. Soon, so will the papers.",
-  "lila-chen":
-    "Lila goes quietly, which the room mistakes for guilt. Fraud is a smaller crime. By the time anyone reads the unsent draft, the man who poured the glass is gone.",
-};
-
-/**
- * Look up helpers — both partners may use these; do not reimplement in CSS.
- */
-function getSuspect(id) {
-  return SUSPECTS.find((s) => s.id === id) || null;
+function isSolid(tx, ty) {
+  if (ty < 0 || tx < 0 || ty >= MAP.length || tx >= MAP[0].length) return true;
+  return TILE[MAP[ty][tx]].solid;
 }
 
-function getClue(id) {
-  return CLUES.find((c) => c.id === id) || null;
+function tileAt(x, y) {
+  const tx = Math.floor(x);
+  const ty = Math.floor(y);
+  if (ty < 0 || tx < 0 || ty >= MAP.length || tx >= MAP[0].length) return 5;
+  return MAP[ty][tx];
 }
 
 /**
- * Resolve the ending from an accusation and the collected clues.
- * @param {string|null|undefined} accusedSuspect  Suspect ID, or falsy if none.
- * @param {string[]} collected                     Clue IDs gathered so far.
- * @returns {"correct"|"wrong"|"timeout"}
+ * @param {{targetDown:boolean, playerDead:boolean}} state
+ * @returns {"complete"|"failed"|"active"}
  */
-function checkEnding(accusedSuspect, collected) {
-  const gathered = Array.isArray(collected) ? collected : [];
-  if (!accusedSuspect) {
-    return ENDINGS.timeout.id;
-  }
-  if (gathered.length < CLUES.length) {
-    return ENDINGS.timeout.id;
-  }
-  if (accusedSuspect === KILLER_ID) {
-    return ENDINGS.correct.id;
-  }
-  return ENDINGS.wrong.id;
+function checkMission(state) {
+  if (!state || state.playerDead) return "failed";
+  if (state.targetDown) return "complete";
+  return "active";
+}
+
+function cloneEnemies() {
+  return ENEMY_TEMPLATES.map((e) => ({
+    ...e,
+    alive: true,
+    cooldown: 0,
+    hurt: 0,
+  }));
 }
