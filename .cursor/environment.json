@@ -1,0 +1,16 @@
+{
+  "name": "Death at the Devereux Gala",
+  "ports": [
+    {
+      "name": "web",
+      "port": 8080
+    }
+  ],
+  "terminals": [
+    {
+      "name": "web",
+      "command": "python3 -m http.server 8080",
+      "description": "Static web server for the game. Open http://localhost:8080 to play. Run `node test-contract.js` to exercise the data/ending contract without a browser."
+    }
+  ]
+}
