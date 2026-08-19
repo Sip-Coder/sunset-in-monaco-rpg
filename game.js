@@ -23,6 +23,7 @@ const state = {
   muzzle: 0,
   keys: Object.create(null),
   enemies: cloneEnemies(),
+  bullets: [],
   zbuf: new Float32Array(W),
   last: 0,
   ended: false,
@@ -320,6 +321,7 @@ function resetPlay() {
   state.fireCd = 0;
   state.reload = 0;
   state.enemies = cloneEnemies();
+  state.bullets = [];
   state.ended = false;
 }
 
@@ -387,15 +389,21 @@ function fire() {
   state.fireCd = WEAPON.fireCooldown;
   state.muzzle = 0.08;
   blip(880, 0.04);
-  const hit = hitscan();
-  if (hit) {
-    hit.hp -= WEAPON.damage;
-    hit.hurt = 0.15;
-    if (hit.hp <= 0) {
-      hit.alive = false;
-      blip(140, 0.1);
-    }
-  }
+  spawnBullet(state.px, state.py, state.dir, true, WEAPON.damage);
+}
+
+function spawnBullet(x, y, ang, friendly, dmg) {
+  const spd = friendly ? 34 : 12;
+  state.bullets.push({
+    x: x + Math.cos(ang) * 0.35,
+    y: y + Math.sin(ang) * 0.35,
+    vx: Math.cos(ang) * spd,
+    vy: Math.sin(ang) * spd,
+    life: friendly ? 0.5 : 0.85,
+    friendly: friendly,
+    dmg: dmg,
+    hit: false,
+  });
 }
 
 function hitscan() {
@@ -494,22 +502,60 @@ function update(dt) {
   for (let i = 0; i < state.enemies.length; i++) {
     const e = state.enemies[i];
     if (!e.alive) continue;
+    if (e.phase == null) {
+      e.phase = Math.random() * 12;
+      e.pose = "idle";
+      e.dodgeT = 0;
+      e.shootT = 0;
+      e.dodgeDir = 1;
+    }
     e.cooldown = Math.max(0, e.cooldown - dt);
     e.hurt = Math.max(0, e.hurt - dt);
+    e.dodgeT = Math.max(0, e.dodgeT - dt);
+    e.shootT = Math.max(0, e.shootT - dt);
     const dist = Math.hypot(e.x - state.px, e.y - state.py);
-    if (dist > 13) continue;
-    if (dist < 10 && hasLos(e.x, e.y, state.px, state.py)) {
-      const ang = Math.atan2(state.py - e.y, state.px - e.x);
-      if (dist > 1.4) {
-        const sp = 1.35 * dt;
-        tryMoveEntity(e, e.x + Math.cos(ang) * sp, e.y + Math.sin(ang) * sp);
+    if (dist > 16) {
+      e.pose = "idle";
+      continue;
+    }
+    const ang = Math.atan2(state.py - e.y, state.px - e.x);
+    let da = ang - state.dir;
+    while (da > Math.PI) da -= Math.PI * 2;
+    while (da < -Math.PI) da += Math.PI * 2;
+    const spotted = dist < 12 && hasLos(e.x, e.y, state.px, state.py);
+    const aimedAt = spotted && Math.abs(da) < 0.16;
+    if (aimedAt && e.dodgeT <= 0) {
+      e.dodgeT = 0.42;
+      e.dodgeDir = da >= 0 ? 1 : -1;
+      e.pose = "dodge";
+    }
+    if (e.dodgeT > 0 && spotted) {
+      e.pose = "dodge";
+      e.phase += dt * 14;
+      const side = ang + (Math.PI / 2) * e.dodgeDir;
+      tryMoveEntity(e, e.x + Math.cos(side) * 5.2 * dt, e.y + Math.sin(side) * 5.2 * dt);
+    } else if (spotted && dist > 2.1) {
+      e.pose = "walk";
+      e.phase += dt * 9;
+      const sp = (e.kind === "elite" ? 1.7 : 1.35) * dt;
+      tryMoveEntity(e, e.x + Math.cos(ang) * sp, e.y + Math.sin(ang) * sp);
+    } else if (spotted) {
+      e.pose = e.shootT > 0 ? "shoot" : "aim";
+      e.phase += dt * 4;
+      if (e.cooldown <= 0) {
+        e.cooldown = e.kind === "target" ? 0.7 : 0.95;
+        e.shootT = 0.16;
+        e.pose = "shoot";
+        spawnBullet(e.x, e.y, ang, false, e.kind === "target" ? 14 : 8);
+        blip(420, 0.05);
       }
-      if (dist < 9 && e.cooldown <= 0) {
-        e.cooldown = 0.9;
-        playerHurt(e.kind === "target" ? 14 : 8);
-      }
+    } else {
+      e.pose = "idle";
+      e.phase += dt * 2;
     }
   }
+
+  updateBullets(dt);
 
   const targetAlive = state.enemies.some(function (e) {
     return e.kind === "target" && e.alive;
@@ -519,6 +565,40 @@ function update(dt) {
     playerDead: state.hp <= 0,
   });
   if (status !== "active") endMission(status);
+}
+
+function updateBullets(dt) {
+  const next = [];
+  for (let i = 0; i < state.bullets.length; i++) {
+    const b = state.bullets[i];
+    b.x += b.vx * dt;
+    b.y += b.vy * dt;
+    b.life -= dt;
+    if (b.life <= 0 || isSolid(b.x | 0, b.y | 0)) continue;
+    if (b.friendly && !b.hit) {
+      for (let j = 0; j < state.enemies.length; j++) {
+        const e = state.enemies[j];
+        if (!e.alive) continue;
+        if (Math.hypot(e.x - b.x, e.y - b.y) < 0.42) {
+          e.hp -= b.dmg;
+          e.hurt = 0.12;
+          b.hit = true;
+          if (e.hp <= 0) {
+            e.alive = false;
+            blip(140, 0.1);
+          }
+          break;
+        }
+      }
+    } else if (!b.friendly && !b.hit) {
+      if (Math.hypot(state.px - b.x, state.py - b.y) < 0.38) {
+        playerHurt(b.dmg);
+        b.hit = true;
+      }
+    }
+    if (!b.hit || b.life > 0.04) next.push(b);
+  }
+  state.bullets = next;
 }
 
 function tryMove(nx, ny) {
@@ -645,14 +725,21 @@ function draw() {
     const dist = Math.hypot(sprites[i].x - state.px, sprites[i].y - state.py);
     if (dist > 18) continue;
     const kind = sprites[i].kind;
-    if (kind === "guard" || kind === "elite" || kind === "target") {
-      drawPerson(sprites[i]);
-    } else {
-      drawProp(sprites[i]);
-    }
+    if (kind === "guard" || kind === "elite" || kind === "target") continue;
+    drawProp(sprites[i]);
   }
 
   ctx.putImageData(frame, 0, 0);
+  ctx.imageSmoothingEnabled = true;
+  for (let i = 0; i < sprites.length; i++) {
+    const dist = Math.hypot(sprites[i].x - state.px, sprites[i].y - state.py);
+    if (dist > 18) continue;
+    const kind = sprites[i].kind;
+    if (kind === "guard" || kind === "elite" || kind === "target") {
+      drawRig(sprites[i]);
+    }
+  }
+  drawWorldBullets();
   drawGun();
 }
 
@@ -669,28 +756,151 @@ function projectSprite(x, y) {
   return { tx: tx, ty: ty };
 }
 
-function drawPerson(e) {
+function drawRig(e) {
   const p = projectSprite(e.x, e.y);
   if (p.ty <= 0.12) return;
   const sx = ((W / 2) * (1 + p.tx / p.ty)) | 0;
-  const size = Math.min(H * 1.8, Math.abs(H / p.ty)) | 0;
-  const x0 = (sx - size / 2) | 0;
-  const y0 = ((H - size) / 2 + size * 0.08 + state.pitch * H) | 0;
-  const target = e.kind === "target";
-  for (let x = 0; x < size; x++) {
-    const cx = x0 + x;
-    if (cx < 0 || cx >= W) continue;
-    if (p.ty >= state.zbuf[cx]) continue;
-    const u = x / size;
-    for (let y = 0; y < size; y++) {
-      const cy = y0 + y;
-      if (cy < 0 || cy >= H) continue;
-      const v = y / size;
-      const col = e.hurt > 0 ? [255, 255, 255] : sampleArt(e.portrait, u, v) || personPixel(u, v, target, false);
-      if (!col) continue;
-      putPx(cx, cy, col[0], col[1], col[2], 1);
-    }
+  const col = Math.max(0, Math.min(W - 1, sx));
+  if (p.ty >= state.zbuf[col] + 0.15) return;
+  const h = Math.min(H * 2.1, Math.abs(H / p.ty));
+  const feetY = H / 2 + h * 0.5 + state.pitch * H;
+  const walk = e.pose === "walk" ? Math.sin(e.phase) : e.pose === "dodge" ? Math.sin(e.phase * 1.4) * 0.35 : 0;
+  const dodgeLean = e.pose === "dodge" ? 0.42 * (e.dodgeDir || 1) : 0;
+  const aim = e.pose === "aim" || e.pose === "shoot";
+  const shootKick = e.pose === "shoot" ? 0.35 : 0;
+  ctx.save();
+  ctx.translate(sx + dodgeLean * h * 0.12, feetY);
+  ctx.rotate(dodgeLean * 0.25);
+  const sc = h / 150;
+  ctx.scale(sc, sc);
+  if (e.hurt > 0) ctx.globalAlpha = 0.85;
+
+  const jacket = e.kind === "target" ? "#8a1c28" : "#141418";
+  const pant = "#0c0c10";
+  const gold = "#d4af37";
+  const skin = "#c4a07a";
+
+  function limb(x1, y1, x2, y2, w, color) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = w;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
   }
+
+  const hipY = -52;
+  const lLeg = walk * 26;
+  const rLeg = -walk * 26;
+  limb(-8, hipY, -10 + lLeg * 0.15, -28, 9, pant);
+  limb(-10 + lLeg * 0.15, -28, -8 + lLeg, 0, 8, pant);
+  limb(8, hipY, 10 + rLeg * 0.15, -28, 9, pant);
+  limb(10 + rLeg * 0.15, -28, 8 + rLeg, 0, 8, pant);
+  ctx.fillStyle = "#07070a";
+  ctx.beginPath();
+  ctx.ellipse(-8 + lLeg, 2, 8, 3.5, 0, 0, Math.PI * 2);
+  ctx.ellipse(8 + rLeg, 2, 8, 3.5, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = jacket;
+  ctx.fillRect(-16, -108, 32, 58);
+  ctx.fillStyle = gold;
+  ctx.fillRect(-16, -78, 32, 3);
+  ctx.fillStyle = e.kind === "target" ? "#efe2c4" : "#ece6dc";
+  ctx.fillRect(-4, -108, 8, 36);
+
+  const armSwing = aim ? 0 : -walk * 22;
+  const lArmY = -98;
+  limb(-15, lArmY, -28, -78 + armSwing * 0.3, 7, jacket);
+  limb(-28, -78 + armSwing * 0.3, -30, -58 + armSwing, 6, skin);
+
+  const gunAng = aim ? -1.25 - shootKick : -0.4 + walk * 0.2;
+  const ax = 16;
+  const ay = -98;
+  const hx = ax + Math.cos(gunAng) * 34;
+  const hy = ay + Math.sin(gunAng) * 34;
+  limb(ax, ay, hx, hy, 7, jacket);
+  limb(hx, hy, hx + Math.cos(gunAng) * 16, hy + Math.sin(gunAng) * 16, 5, skin);
+  const gx = hx + Math.cos(gunAng) * 22;
+  const gy = hy + Math.sin(gunAng) * 22;
+  ctx.save();
+  ctx.translate(gx, gy);
+  ctx.rotate(gunAng);
+  ctx.fillStyle = "#1a1a1a";
+  ctx.fillRect(0, -3, 22, 6);
+  ctx.fillStyle = gold;
+  ctx.fillRect(2, -4, 8, 2);
+  if (e.pose === "shoot") {
+    ctx.fillStyle = "#fff4c2";
+    ctx.beginPath();
+    ctx.arc(26, 0, 7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#f2994a";
+    ctx.beginPath();
+    ctx.arc(30, 0, 4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+
+  const headImg = artPixels[e.portrait] && artPixels[e.portrait].img;
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(0, -124, 16, 0, Math.PI * 2);
+  ctx.closePath();
+  ctx.clip();
+  if (headImg) {
+    ctx.drawImage(headImg, -18, -142, 36, 36);
+  } else {
+    ctx.fillStyle = skin;
+    ctx.fillRect(-16, -140, 32, 32);
+  }
+  ctx.restore();
+  ctx.strokeStyle = gold;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(0, -124, 16.5, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function drawWorldBullets() {
+  for (let i = 0; i < state.bullets.length; i++) {
+    const b = state.bullets[i];
+    const p = projectSprite(b.x, b.y);
+    if (p.ty <= 0.08) continue;
+    const sx = ((W / 2) * (1 + p.tx / p.ty)) | 0;
+    const col = Math.max(0, Math.min(W - 1, sx));
+    if (p.ty >= state.zbuf[col] + 0.2) continue;
+    const sy = ((H / 2) + state.pitch * H) | 0;
+    const len = Math.max(6, 18 / p.ty);
+    const ang = Math.atan2(b.vy, b.vx) - state.dir;
+    ctx.save();
+    ctx.translate(sx, sy);
+    ctx.rotate(ang);
+    const grd = ctx.createLinearGradient(-len, 0, len, 0);
+    if (b.friendly) {
+      grd.addColorStop(0, "rgba(255,244,180,0)");
+      grd.addColorStop(0.5, "#fff7c2");
+      grd.addColorStop(1, "#f2994a");
+    } else {
+      grd.addColorStop(0, "rgba(255,80,80,0)");
+      grd.addColorStop(0.5, "#ffd0a0");
+      grd.addColorStop(1, "#ff4a3a");
+    }
+    ctx.fillStyle = grd;
+    ctx.fillRect(-len, -1.5, len * 2, 3);
+    ctx.fillStyle = "#fff";
+    ctx.beginPath();
+    ctx.arc(len, 0, 2.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+function drawPerson(e) {
+  drawRig(e);
 }
 
 function personPixel(u, v, target, hurt) {
@@ -863,7 +1073,7 @@ function hud() {
   document.getElementById("ammo-count").textContent =
     state.reload > 0 ? "RELOAD" : state.mag + " / " + state.reserve;
   const guards = state.enemies.filter(function (e) {
-    return e.kind === "guard" && e.alive;
+    return e.alive && e.kind !== "target";
   }).length;
   const targetAlive = state.enemies.some(function (e) {
     return e.kind === "target" && e.alive;
@@ -896,6 +1106,7 @@ window.GAME_CONTRACT = {
   ART: ART,
   WEAPON: WEAPON,
   ENEMY_TEMPLATES: ENEMY_TEMPLATES,
+  spawnBullet: spawnBullet,
   get state() {
     return state;
   },

@@ -2,7 +2,7 @@
 
 N64-style first-person spy shooter. Static HTML/CSS/JS — no backend.
 
-Painted stills from Partner A live under `assets/` (`sceneImage`, `backdropImage`, per-host `portrait`) and are sampled in the first-person view.
+Hostiles are articulated tuxedo rigs (painted portraits as heads) that walk, aim, shoot visible tracers, and dodge when you draw a bead on them.
 
 ## Play
 
@@ -10,7 +10,7 @@ Painted stills from Partner A live under `assets/` (`sceneImage`, `backdropImage
 python3 -m http.server 8080 --bind 0.0.0.0
 ```
 
-Open [http://localhost:8080](http://localhost:8080). Click the view to lock the mouse.
+Open [http://localhost:8080](http://localhost:8080) and leave that tab open — the page reloads itself when `index.html`, `game.js`, `data.js`, or `style.css` change.
 
 | Control | Action |
 | --- | --- |

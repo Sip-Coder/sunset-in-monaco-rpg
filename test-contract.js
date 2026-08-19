@@ -66,8 +66,9 @@ assert.ok(html.includes("game.js"));
 const gameSrc = fs.readFileSync(__dirname + "/game.js", "utf8");
 assert.ok(gameSrc.includes("checkMission("));
 assert.ok(gameSrc.includes("window.GAME_CONTRACT"));
-assert.ok(gameSrc.includes("ArrowLeft"));
-assert.ok(gameSrc.includes("ArrowUp"));
+assert.ok(gameSrc.includes("drawRig"));
+assert.ok(gameSrc.includes("spawnBullet"));
+assert.ok(gameSrc.includes("dodge"));
 
 console.log("contract ok");
 console.log("  mission:", MISSION.id);

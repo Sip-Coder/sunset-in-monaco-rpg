@@ -80,5 +80,29 @@
 
     <script src="data.js"></script>
     <script src="game.js"></script>
+    <script>
+      (function liveReload() {
+        const files = ["index.html", "game.js", "data.js", "style.css"];
+        let stamp = "";
+        async function tick() {
+          try {
+            const marks = await Promise.all(
+              files.map(function (f) {
+                return fetch(f + "?watch=" + Date.now(), { cache: "no-store" }).then(function (r) {
+                  return r.headers.get("last-modified") + ":" + r.headers.get("content-length");
+                });
+              })
+            );
+            const next = marks.join("|");
+            if (stamp && next !== stamp) location.reload();
+            stamp = next;
+          } catch (err) {
+            /* preview server may briefly restart */
+          }
+        }
+        setInterval(tick, 900);
+        tick();
+      })();
+    </script>
   </body>
 </html>
