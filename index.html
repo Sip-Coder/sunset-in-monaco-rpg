@@ -3,236 +3,80 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Death at the Devereux Gala</title>
+    <title>Devereux 64 — Harbor Night</title>
     <meta
       name="description"
-      content="A point-and-click noir murder mystery. Simone Vale is dead on a Monaco harbor yacht. Accuse the right suspect before the night swallows the truth."
+      content="N64-style first-person spy shooter. Infiltrate the Devereux yacht at sunset and complete the mission."
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Cormorant+Garamond:ital,wght@0,600;1,600&family=Inter:wght@300;400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="style.css" />
-    <link
-      rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect fill='%23001020' width='64' height='64'/%3E%3Ccircle cx='32' cy='32' r='14' fill='none' stroke='%23d4af37' stroke-width='2'/%3E%3Cpath d='M32 18v28M18 32h28' stroke='%23f2994a' stroke-width='2'/%3E%3C/svg%3E"
-    />
   </head>
   <body>
-    <a class="skip-link" href="#app">Skip to game</a>
-    <div id="grain" aria-hidden="true"></div>
-
-    <div id="app">
-      <!-- TITLE -->
-      <section id="screen-title" class="screen is-active" data-screen="title">
-        <div class="title-frame">
-          <p class="kicker">A noir mystery in five clues</p>
-          <h1 id="game-title">Death at the Devereux Gala</h1>
-          <p id="game-tagline" class="tagline">They said the collection was to die for.</p>
-          <p class="title-meta">Monaco Harbor · Black-and-gold yacht · One body</p>
-          <button type="button" class="btn btn-gold" id="btn-enter" autofocus>
-            Board the yacht
-          </button>
+    <div id="crt">
+      <canvas id="view" width="320" height="180" aria-label="First-person view"></canvas>
+      <div id="hud">
+        <div class="hud-watch">
+          <p class="hud-label">ARMOR</p>
+          <div class="bar"><i id="armor-bar"></i></div>
+          <p class="hud-label">HEALTH</p>
+          <div class="bar health"><i id="health-bar"></i></div>
         </div>
-      </section>
-
-      <!-- BRIEFING -->
-      <section id="screen-briefing" class="screen" data-screen="briefing" hidden>
-        <div class="briefing-card">
-          <p class="kicker" id="briefing-time">2:14 a.m.</p>
-          <h2 id="briefing-headline"></h2>
-          <div id="briefing-copy" class="prose"></div>
-          <div class="suspect-row" id="briefing-suspects" aria-label="Suspects"></div>
-          <button type="button" class="btn btn-gold" id="btn-begin">
-            Begin the investigation
-          </button>
+        <div id="crosshair">+</div>
+        <div class="hud-ammo">
+          <p id="weapon-name">PPK-64</p>
+          <p id="ammo-count">7 / 21</p>
         </div>
-      </section>
-
-      <!-- INVESTIGATE -->
-      <section id="screen-investigate" class="screen" data-screen="investigate" hidden>
-        <header class="hud">
-          <div class="hud-brand">
-            <span class="hud-mark">DVX</span>
-            <div>
-              <p class="hud-title">Superyacht deck</p>
-              <p class="hud-sub" id="hud-progress">0 / 5 clues</p>
-            </div>
-          </div>
-          <div class="hud-clock" aria-live="polite">
-            <span class="clock-label">Guests depart in</span>
-            <span id="timer-display" class="clock-value">5:00</span>
-          </div>
-          <button type="button" class="btn btn-ghost" id="btn-accuse" disabled>
-            Confront the suspects
-          </button>
-        </header>
-
-        <div class="investigate-layout">
-          <div
-            id="scene"
-            class="scene"
-            role="application"
-            aria-label="Sunset on a Monaco harbor yacht. Click glowing hotspots to inspect clues."
-          >
-            <div class="sun" aria-hidden="true"></div>
-            <div class="harbor-water" aria-hidden="true"></div>
-
-            <svg
-              class="skyline"
-              viewBox="0 0 1200 220"
-              preserveAspectRatio="none"
-              aria-hidden="true"
-            >
-              <path
-                fill="#05060c"
-                d="M0 220 L0 150 L40 150 L48 118 L70 118 L78 88 L110 88 L118 70 L150 70 L158 96 L190 96 L198 60 L230 60 L238 92 L280 92 L286 48 L310 48 L318 20 L350 20 L358 48 L390 48 L398 80 L430 80 L440 110 L470 110 L478 74 L510 74 L520 40 L548 40 L556 12 L590 12 L598 40 L630 40 L640 68 L670 68 L678 92 L720 92 L728 58 L760 58 L770 84 L800 84 L808 50 L840 50 L848 76 L880 76 L890 108 L920 108 L928 64 L960 64 L970 90 L1000 90 L1010 120 L1040 120 L1050 86 L1080 86 L1090 130 L1120 130 L1130 150 L1200 150 L1200 220 Z"
-              />
-              <path
-                fill="#0a0c14"
-                d="M318 20 L350 20 L350 8 L334 0 L318 8 Z"
-              />
-              <circle cx="334" cy="28" r="10" fill="none" stroke="#d4af37" stroke-width="1.5" opacity="0.45" />
-            </svg>
-
-            <div class="railing" aria-hidden="true">
-              <div class="rail-top"></div>
-              <div class="rail-posts"></div>
-            </div>
-
-            <div class="yacht-hull" aria-hidden="true"></div>
-            <div class="yacht-deck">
-              <div class="deck-bar" aria-hidden="true">
-                <div class="bar-top"></div>
-                <div class="flute-prop"></div>
-                <div class="bar-bottles"></div>
-              </div>
-
-              <div class="lounge" aria-hidden="true">
-                <div class="lounge-seat"></div>
-                <div class="lounge-seat lounge-seat-b"></div>
-                <div class="silk-wrap"></div>
-              </div>
-
-              <div class="side-table" aria-hidden="true">
-                <div class="table-top"></div>
-                <div class="phone-prop"></div>
-                <div class="ashtray"></div>
-                <div class="letter-prop"></div>
-              </div>
-
-              <div class="cabin-door" aria-hidden="true">
-                <div class="door-panel"></div>
-                <div class="door-gap"></div>
-                <div class="door-handle"></div>
-                <div class="heel"></div>
-              </div>
-            </div>
-
-            <div id="hotspots">
-              <button
-                type="button"
-                class="hotspot"
-                data-clue="champagne-flute"
-                style="left: 16%; top: 72%"
-              >
-                <span class="hotspot-ring"></span>
-                <span class="hotspot-label"></span>
-              </button>
-              <button
-                type="button"
-                class="hotspot"
-                data-clue="torn-dress"
-                style="left: 42%; top: 68%"
-              >
-                <span class="hotspot-ring"></span>
-                <span class="hotspot-label"></span>
-              </button>
-              <button
-                type="button"
-                class="hotspot"
-                data-clue="phone"
-                style="left: 63%; top: 74%"
-              >
-                <span class="hotspot-ring"></span>
-                <span class="hotspot-label"></span>
-              </button>
-              <button
-                type="button"
-                class="hotspot"
-                data-clue="love-letter"
-                style="left: 70%; top: 70%"
-              >
-                <span class="hotspot-ring"></span>
-                <span class="hotspot-label"></span>
-              </button>
-              <button
-                type="button"
-                class="hotspot"
-                data-clue="timeline-note"
-                style="left: 88%; top: 62%"
-              >
-                <span class="hotspot-ring"></span>
-                <span class="hotspot-label"></span>
-              </button>
-            </div>
-
-            <div class="vignette" aria-hidden="true"></div>
-            <p class="scene-caption">
-              Monaco Harbor, sunset — click the deck. The railing is scenery. Everything else is evidence.
-            </p>
-          </div>
-
-          <aside class="dossier" aria-label="Case dossier">
-            <h2>Dossier</h2>
-            <p class="dossier-victim" id="dossier-victim"></p>
-            <h3>Clues</h3>
-            <ol id="clue-list" class="clue-list"></ol>
-            <h3>Suspects</h3>
-            <ul id="suspect-list" class="suspect-list"></ul>
-          </aside>
-        </div>
-      </section>
-
-      <!-- ACCUSE -->
-      <section id="screen-accuse" class="screen" data-screen="accuse" hidden>
-        <div class="accuse-wrap">
-          <header class="accuse-header">
-            <p class="kicker">The commissioner wants a name</p>
-            <h2>Who killed Simone Vale?</h2>
-            <p class="accuse-timer">
-              Accuse in <span id="accuse-timer-display">0:45</span> or the night closes.
-            </p>
-          </header>
-          <div id="accuse-grid" class="accuse-grid"></div>
-          <p class="accuse-hint">Choose carefully. A wrong name lets the killer walk.</p>
-        </div>
-      </section>
-
-      <!-- ENDING -->
-      <section id="screen-ending" class="screen" data-screen="ending" hidden>
-        <article class="ending-card" id="ending-card">
-          <p class="kicker" id="ending-kicker"></p>
-          <h2 id="ending-title"></h2>
-          <div id="ending-body" class="prose"></div>
-          <p class="ending-id" id="ending-id-label" hidden></p>
-          <button type="button" class="btn btn-gold" id="btn-restart">Play again</button>
-        </article>
-      </section>
-    </div>
-
-    <!-- CLUE MODAL -->
-    <div id="clue-modal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modal-title">
-      <div class="modal-card">
-        <p class="kicker" id="modal-kicker">Evidence</p>
-        <h2 id="modal-title"></h2>
-        <p id="modal-inspection" class="prose"></p>
-        <p id="modal-analysis" class="analysis"></p>
-        <button type="button" class="btn btn-gold" id="btn-close-modal">Slip it into the dossier</button>
+        <p id="objective">PRIMARY: Neutralize M. Vale</p>
+        <p id="hint">Click view to lock mouse · WASD move · Click fire · R reload · Shift run</p>
       </div>
     </div>
+
+    <section id="screen-title" class="overlay is-active">
+      <div class="card">
+        <p class="kicker">Co-Main 64 · Mission 1</p>
+        <h1>DEVEREUX 64</h1>
+        <p class="tag">HARBOR NIGHT</p>
+        <p class="blurb">
+          Sunset, Monaco. Adrienne Devereux’s black-and-gold yacht. Simone Vale is dead.
+          You are not here to accuse. You are here to finish it.
+        </p>
+        <button type="button" id="btn-brief" class="btn">Mission briefing</button>
+      </div>
+    </section>
+
+    <section id="screen-brief" class="overlay" hidden>
+      <div class="card wide">
+        <p class="kicker">Background</p>
+        <h2 id="brief-title"></h2>
+        <ol id="brief-objectives"></ol>
+        <p id="brief-copy" class="blurb"></p>
+        <p class="controls">
+          WASD move · Mouse look · LMB fire · R reload · Shift run · Esc pause
+        </p>
+        <button type="button" id="btn-start" class="btn">Start mission</button>
+      </div>
+    </section>
+
+    <section id="screen-pause" class="overlay" hidden>
+      <div class="card">
+        <h2>Paused</h2>
+        <button type="button" id="btn-resume" class="btn">Resume</button>
+      </div>
+    </section>
+
+    <section id="screen-end" class="overlay" hidden>
+      <div class="card">
+        <p class="kicker" id="end-kicker"></p>
+        <h2 id="end-title"></h2>
+        <p id="end-body" class="blurb"></p>
+        <button type="button" id="btn-restart" class="btn">Play again</button>
+      </div>
+    </section>
 
     <script src="data.js"></script>
     <script src="game.js"></script>

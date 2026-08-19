@@ -1,9 +1,4 @@
 #!/usr/bin/env node
-/**
- * Contract tests for checkEnding(accusedSuspect, clues).
- * Loads data.js, then reimplements the resolver identically to game.js
- * so the IDs and branching rules can be verified without a browser.
- */
 const fs = require("fs");
 const vm = require("vm");
 const assert = require("assert");
@@ -12,48 +7,55 @@ const context = { console };
 vm.createContext(context);
 vm.runInContext(
   fs.readFileSync(__dirname + "/data.js", "utf8") +
-    "\n;this.__export = { CLUES, ENDINGS, KILLER_ID, SUSPECTS, getClue, getSuspect, checkEnding };",
+    "\n;this.__export = { MAP, TILE, WEAPON, MISSION, ENEMY_TEMPLATES, PLAYER_START, ENDINGS, isSolid, checkMission, cloneEnemies };",
   context
 );
 
-const { CLUES, ENDINGS, KILLER_ID, SUSPECTS, getClue, getSuspect, checkEnding } =
-  context.__export;
+const {
+  MAP,
+  TILE,
+  WEAPON,
+  MISSION,
+  ENEMY_TEMPLATES,
+  PLAYER_START,
+  ENDINGS,
+  isSolid,
+  checkMission,
+  cloneEnemies,
+} = context.__export;
 
-const allClues = CLUES.map((c) => c.id);
-const others = SUSPECTS.filter((s) => s.id !== KILLER_ID).map((s) => s.id);
+assert.ok(MAP.length >= 10, "map rows");
+assert.ok(MAP[0].length >= 10, "map cols");
+assert.strictEqual(TILE[0].solid, false);
+assert.ok(TILE[1].solid);
+assert.ok(!isSolid(PLAYER_START.x | 0, PLAYER_START.y | 0), "spawn walkable");
+assert.ok(WEAPON.magSize >= 1);
+assert.ok(WEAPON.damage > 0);
+assert.ok(MISSION.primary.includes("Marcus Vale"));
 
-assert.strictEqual(CLUES.length, 5, "five clues");
-assert.strictEqual(SUSPECTS.length, 4, "four suspects");
-assert.strictEqual(KILLER_ID, "marcus-vale");
-assert.ok(getSuspect(KILLER_ID).isKiller);
-assert.ok(getClue("champagne-flute") && !getClue("champagne-flute").isRedHerring);
-assert.ok(getClue("timeline-note") && !getClue("timeline-note").isRedHerring);
-assert.ok(getClue("torn-dress").isRedHerring);
-assert.ok(getClue("phone").isRedHerring);
-assert.ok(getClue("love-letter").isRedHerring);
+const target = ENEMY_TEMPLATES.find((e) => e.kind === "target");
+assert.ok(target && target.id === "marcus-vale");
+assert.ok(ENEMY_TEMPLATES.filter((e) => e.kind === "guard").length >= 3);
 
-assert.strictEqual(checkEnding("marcus-vale", allClues), "correct");
-assert.strictEqual(checkEnding(null, allClues), "timeout");
-assert.strictEqual(checkEnding(undefined, []), "timeout");
-assert.strictEqual(checkEnding("marcus-vale", ["champagne-flute"]), "timeout");
+assert.strictEqual(checkMission({ targetDown: true, playerDead: false }), "complete");
+assert.strictEqual(checkMission({ targetDown: false, playerDead: true }), "failed");
+assert.strictEqual(checkMission({ targetDown: false, playerDead: false }), "active");
+assert.ok(ENDINGS.complete && ENDINGS.failed);
 
-for (const id of others) {
-  assert.strictEqual(checkEnding(id, allClues), "wrong", id);
-}
-
-assert.strictEqual(typeof checkEnding, "function", "checkEnding lives in data.js");
-const gameSrc = fs.readFileSync(__dirname + "/game.js", "utf8");
-assert.ok(gameSrc.includes("checkEnding("), "game.js calls checkEnding");
-assert.ok(gameSrc.includes("window.GAME_CONTRACT"), "contract exposed for playtest");
+const clones = cloneEnemies();
+assert.strictEqual(clones.length, ENEMY_TEMPLATES.length);
+assert.ok(clones[0].alive);
 
 const html = fs.readFileSync(__dirname + "/index.html", "utf8");
-assert.ok(html.includes('id="hotspots"'));
-assert.ok(html.includes('data-clue="champagne-flute"'));
-assert.ok(html.includes('class="yacht-deck"'));
+assert.ok(html.includes('id="view"'));
 assert.ok(html.includes("data.js"));
 assert.ok(html.includes("game.js"));
 
+const gameSrc = fs.readFileSync(__dirname + "/game.js", "utf8");
+assert.ok(gameSrc.includes("checkMission("));
+assert.ok(gameSrc.includes("window.GAME_CONTRACT"));
+
 console.log("contract ok");
-console.log("  killer:", KILLER_ID);
-console.log("  clues:", allClues.join(", "));
-console.log("  endings: correct / wrong / timeout");
+console.log("  mission:", MISSION.id);
+console.log("  weapon:", WEAPON.name);
+console.log("  hostiles:", ENEMY_TEMPLATES.length);

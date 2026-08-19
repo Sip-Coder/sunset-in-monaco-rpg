@@ -1,41 +1,39 @@
-# Death at the Devereux Gala
+# Devereux 64 — Harbor Night
 
-Point-and-click murder mystery. Static HTML/CSS/JS — no backend.
+N64-style first-person spy shooter. Static HTML/CSS/JS — no backend.
 
-Simone Vale is found dead in the coat cabin of Adrienne Devereux's black-and-gold yacht, moored in Monaco Harbor at sunset. Inspect five hotspots, then accuse one of four suspects before the night closes.
+Sunset, Monaco Harbor. Infiltrate Adrienne Devereux’s black-and-gold yacht and neutralize Marcus Vale. Original mission with chunky 64-bit presentation (homage, not a licensed clone).
 
 ## Play
-
-A local static server is the working preview while we build:
 
 ```bash
 python3 -m http.server 8080 --bind 0.0.0.0
 ```
 
-Then visit [http://localhost:8080](http://localhost:8080). Refresh after HTML/CSS edits — there is no build step.
+Open [http://localhost:8080](http://localhost:8080). Click the view to lock the mouse.
+
+| Control | Action |
+| --- | --- |
+| WASD | Move |
+| Mouse | Look |
+| LMB / Space | Fire |
+| R | Reload |
+| Shift | Run |
+| Esc | Pause |
 
 ## Files
 
-| File | Owner | Role |
-| --- | --- | --- |
-| `data.js` | Partner A | Suspects, clues, endings. Single source of truth. |
-| `game.js` | Partner A | State machine, timer, `checkEnding`. |
-| `index.html` | Partner B | Screens, scene structure, dossier chrome. |
-| `style.css` | Partner B | Noir visuals and hotspot styling. |
+| File | Role |
+| --- | --- |
+| `data.js` | Map, weapon, enemies, `checkMission` |
+| `game.js` | Raycaster, AI, shooting, HUD |
+| `index.html` / `style.css` | Canvas view and N64-style chrome |
 
 ## Data contract
 
-Do not duplicate suspect/clue objects. Both partners read `data.js`.
-
-- `clues` — array of collected clue IDs (runtime, in `game.js`)
-- `checkEnding(accusedSuspect, clues)` → `"correct"` | `"wrong"` | `"timeout"`
-- Clue hotspot IDs: `champagne-flute`, `torn-dress`, `phone`, `love-letter`, `timeline-note`
-- Suspect IDs: `julian-cross`, `adrienne-devereux`, `marcus-vale`, `lila-chen`
-- Killer: `marcus-vale` (`KILLER_ID`)
-
-Linear loop: click all five hotspots → accusation screen → one of three endings (correct / wrong name / no accusation).
-
-Playtest the contract without a browser:
+- `checkMission({ targetDown, playerDead })` → `"complete"` \| `"failed"` \| `"active"`
+- Target id: `marcus-vale`
+- Weapon id: `ppk-64`
 
 ```bash
 node test-contract.js
