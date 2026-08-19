@@ -22,6 +22,7 @@
   </head>
   <body>
     <a class="skip-link" href="#app">Skip to game</a>
+    <div class="backdrop" aria-hidden="true"></div>
     <div id="grain" aria-hidden="true"></div>
 
     <div id="app">
@@ -77,40 +78,12 @@
             role="region"
             aria-label="The Devereux coat room. Click glowing hotspots to inspect clues."
           >
-            <div class="scene-sky"></div>
-            <div class="window-city" aria-hidden="true"></div>
-            <div class="chandelier" aria-hidden="true"></div>
-            <div class="curtain curtain-left" aria-hidden="true"></div>
-            <div class="curtain curtain-right" aria-hidden="true"></div>
-
-            <div class="rack rack-left" aria-hidden="true">
-              <div class="bar"></div>
-              <div class="coat coat-fur"></div>
-              <div class="coat coat-black"></div>
-              <div class="coat coat-wine"></div>
-              <div class="coat coat-ivory"></div>
-            </div>
-            <div class="rack rack-right" aria-hidden="true">
-              <div class="bar"></div>
-              <div class="coat coat-gold-silk"></div>
-              <div class="coat coat-navy"></div>
-              <div class="coat coat-crimson"></div>
-            </div>
-
-            <div class="console" aria-hidden="true">
-              <div class="marble"></div>
-              <div class="flute-prop"></div>
-            </div>
-            <div class="bench" aria-hidden="true">
-              <div class="phone-prop"></div>
-            </div>
-            <div class="valet" aria-hidden="true">
-              <div class="clipboard-prop"></div>
-            </div>
-            <div class="drape" aria-hidden="true" title="Simone Vale — already examined"></div>
-            <div class="heel" aria-hidden="true"></div>
-            <div class="letter-prop" aria-hidden="true"></div>
-
+            <img
+              id="scene-art"
+              class="scene-art"
+              src="assets/scene-coatroom.jpg"
+              alt="A dim, art-deco coat room lit by a single gold chandelier. Coat racks line both walls, a champagne coupe rests on a marble console, a phone glows on a velvet bench, and a half-drawn curtain hides the coat-room floor."
+            />
             <div id="hotspots"></div>
             <div class="vignette" aria-hidden="true"></div>
             <p class="scene-caption">

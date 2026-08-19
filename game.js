@@ -179,6 +179,18 @@ function updateProgress() {
 /* Dossier                                                             */
 /* ------------------------------------------------------------------ */
 
+function portraitTag(suspect, extraClass) {
+  const cls = ["portrait"].concat(extraClass ? [extraClass] : []).join(" ");
+  if (suspect.portrait) {
+    return `<span class="${cls}" style="--accent:${suspect.accent}"><img src="${escapeHtml(
+      suspect.portrait
+    )}" alt="${escapeHtml(suspect.name)}" loading="lazy" /></span>`;
+  }
+  return `<span class="${cls}" style="--accent:${suspect.accent}">${escapeHtml(
+    suspect.initials
+  )}</span>`;
+}
+
 function renderDossier() {
   document.getElementById("dossier-victim").textContent = `${VICTIM.name} — ${VICTIM.role}`;
 
@@ -198,11 +210,9 @@ function renderDossier() {
   suspects.innerHTML = "";
   SUSPECTS.forEach((s) => {
     const li = document.createElement("li");
-    li.innerHTML = `<span class="portrait" style="--accent:${s.accent}">${escapeHtml(
-      s.initials
-    )}</span><div><strong>${escapeHtml(s.name)}</strong><em>${escapeHtml(s.role)} · ${escapeHtml(
-      s.motive
-    )}</em></div>`;
+    li.innerHTML = `${portraitTag(s)}<div><strong>${escapeHtml(
+      s.name
+    )}</strong><em>${escapeHtml(s.role)} · ${escapeHtml(s.motive)}</em></div>`;
     suspects.appendChild(li);
   });
 }
@@ -213,9 +223,9 @@ function renderBriefingSuspects() {
   SUSPECTS.forEach((s) => {
     const card = document.createElement("div");
     card.className = "mini-suspect";
-    card.innerHTML = `<span class="portrait" style="--accent:${s.accent}">${escapeHtml(
-      s.initials
-    )}</span><strong>${escapeHtml(s.name)}</strong><span>${escapeHtml(s.role)}</span>`;
+    card.innerHTML = `${portraitTag(s)}<strong>${escapeHtml(s.name)}</strong><span>${escapeHtml(
+      s.role
+    )}</span>`;
     row.appendChild(card);
   });
 }
@@ -234,7 +244,7 @@ function renderAccusation() {
     btn.dataset.suspectId = s.id;
     btn.style.setProperty("--accent", s.accent);
     btn.innerHTML = `
-      <span class="portrait lg" style="--accent:${s.accent}">${escapeHtml(s.initials)}</span>
+      ${portraitTag(s, "lg")}
       <h3>${escapeHtml(s.name)}</h3>
       <p class="role">${escapeHtml(s.role)} — ${escapeHtml(s.motive)}</p>
       <p class="dossier-text">${escapeHtml(s.dossier)}</p>

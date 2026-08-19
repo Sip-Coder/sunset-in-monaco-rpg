@@ -22,6 +22,7 @@ Then visit `http://localhost:8080`.
 | `game.js` | Partner A | State machine, timer, `checkEnding`. |
 | `index.html` | Partner B | Screens, scene structure, dossier chrome. |
 | `style.css` | Partner B | Noir visuals and hotspot styling. |
+| `assets/` | Partner B | Illustrated coat-room scene, ballroom backdrop, suspect portraits. Paths referenced from `data.js` (`sceneImage`, `backdropImage`, per-suspect `portrait`). |
 
 ## Data contract
 

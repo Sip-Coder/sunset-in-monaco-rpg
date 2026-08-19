@@ -20,6 +20,8 @@ const GAME = {
   time: "2:14 a.m.",
   investigationSeconds: 300,
   accusationSeconds: 45,
+  sceneImage: "assets/scene-coatroom.jpg",
+  backdropImage: "assets/backdrop-ballroom.jpg",
 };
 
 const VICTIM = {
@@ -39,6 +41,7 @@ const SUSPECTS = [
     role: "Designer",
     motive: "Reputation",
     initials: "JC",
+    portrait: "assets/portraits/julian-cross.jpg",
     accent: "#c9b37a",
     dossier:
       "Tonight's darling. His spring line just walked. Simone was preparing a column that would have called the 'couture' what it is: mill work with a Paris label stitched over the seam.",
@@ -52,6 +55,7 @@ const SUSPECTS = [
     role: "Host",
     motive: "Jealousy",
     initials: "AD",
+    portrait: "assets/portraits/adrienne-devereux.jpg",
     accent: "#8b1e3f",
     dossier:
       "The penthouse is hers, the guest list is hers, and for one season so was Simone's fiancé. She smiles as if scandal were a house champagne — always on ice, never admitted.",
@@ -65,6 +69,7 @@ const SUSPECTS = [
     role: "Husband",
     motive: "Money",
     initials: "MV",
+    portrait: "assets/portraits/marcus-vale.jpg",
     accent: "#6a8aa8",
     dossier:
       "Simone's husband. Charm in a dinner jacket. The markers from three casinos would buy a lesser townhouse. He keeps saying 'my wife' as if the possessive still holds.",
@@ -78,6 +83,7 @@ const SUSPECTS = [
     role: "Assistant",
     motive: "Self-preservation",
     initials: "LC",
+    portrait: "assets/portraits/lila-chen.jpg",
     accent: "#2f6b58",
     dossier:
       "Simone's right hand — bookings, invoices, the Guangzhou sample orders no one was meant to see. She has the look of someone who has already packed a bag.",
@@ -94,7 +100,7 @@ const CLUES = [
     shortLabel: "Flute",
     pointsTo: "marcus-vale",
     isRedHerring: false,
-    hotspot: { left: "13%", top: "70%" },
+    hotspot: { left: "10%", top: "76%" },
     sceneHint: "A coupe on the marble console — lipstick on the rim.",
     title: "The coupe with the bitter finish",
     inspection:
@@ -108,7 +114,7 @@ const CLUES = [
     shortLabel: "Silk",
     pointsTo: "adrienne-devereux",
     isRedHerring: true,
-    hotspot: { left: "70%", top: "40%" },
+    hotspot: { left: "66%", top: "36%" },
     sceneHint: "Gold silk snagged on the rack — sequins on the floor.",
     title: "A hostess gown, ruined",
     inspection:
@@ -122,7 +128,7 @@ const CLUES = [
     shortLabel: "Phone",
     pointsTo: "lila-chen",
     isRedHerring: true,
-    hotspot: { left: "76%", top: "76%" },
+    hotspot: { left: "73%", top: "80%" },
     sceneHint: "A screen still unlocked on the velvet bench.",
     title: "An unsent execution",
     inspection:
@@ -136,7 +142,7 @@ const CLUES = [
     shortLabel: "Letter",
     pointsTo: "julian-cross",
     isRedHerring: true,
-    hotspot: { left: "27%", top: "45%" },
+    hotspot: { left: "24%", top: "52%" },
     sceneHint: "Heavy paper peeking from a borrowed mink.",
     title: "A ghost of another season",
     inspection:
@@ -150,7 +156,7 @@ const CLUES = [
     shortLabel: "Ledger",
     pointsTo: "marcus-vale",
     isRedHerring: false,
-    hotspot: { left: "90%", top: "24%" },
+    hotspot: { left: "91%", top: "52%" },
     sceneHint: "The valet's clipboard, still on its hook.",
     title: "Ten minutes, named",
     inspection:
